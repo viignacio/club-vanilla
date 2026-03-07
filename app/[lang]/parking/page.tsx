@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: ParkingPageProps): Promise<Me
   const lang = rawLang as Lang;
   const page = await getPage("parking");
   return {
-    title: getLocalized(page?.seoTitle, lang) || `Parking | Club Vanilla`,
+    title: getLocalized(page?.seoTitle, lang) || (lang === "ja" ? "駐車場" : "Parking"),
     description: getLocalized(page?.seoDescription, lang) || "Parking information for Club Vanilla",
   };
 }

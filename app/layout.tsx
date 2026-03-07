@@ -17,7 +17,10 @@ const carroisGothic = Carrois_Gothic({
 });
 
 export const metadata: Metadata = {
-  title: "Club Vanilla",
+  title: {
+    template: "Club Vanilla - %s",
+    default: "Club Vanilla",
+  },
   description: "Philippine Show Pub in Oyama, Tochigi",
 };
 
@@ -27,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html>
+    <html lang="ja">
       <body
         className={`${notoSansJP.variable} ${carroisGothic.variable} antialiased bg-dark-900 text-white`}
       >

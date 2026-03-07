@@ -122,3 +122,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1.5px solid rgba(255, 105, 180, 0.55);
   animation: neon-pulse 2.5s ease-in-out infinite;
 }
+
+/* Hide scrollbar while keeping scroll functionality */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

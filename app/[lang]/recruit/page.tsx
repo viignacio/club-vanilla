@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: RecruitPageProps): Promise<Me
   const lang = rawLang as Lang;
   const page = await getPage("recruit");
   return {
-    title: getLocalized(page?.seoTitle, lang) || `Recruit | Club Vanilla`,
+    title: getLocalized(page?.seoTitle, lang) || (lang === "ja" ? "採用情報" : "Recruit"),
     description: getLocalized(page?.seoDescription, lang) || "Join the Club Vanilla team",
   };
 }

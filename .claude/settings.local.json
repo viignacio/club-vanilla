@@ -9,7 +9,10 @@
       "Bash(npm install sanity next-sanity @sanity/image-url framer-motion)",
       "Bash(npx tsc --noEmit)",
       "Bash(npm run build)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm install @supabase/supabase-js)",
+      "Bash(npm install qrcode)",
+      "Bash(npm install -D @types/qrcode)"
     ]
   }
 }

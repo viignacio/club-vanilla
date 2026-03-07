@@ -7,11 +7,13 @@ const AUTH_COOKIE = "cv_auth";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for studio, API routes, login page, and static files
+  // Skip middleware for studio, API routes, special app pages, and static files
   if (
     pathname.startsWith("/studio") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/login") ||
+    pathname.startsWith("/order") ||
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     /\.(.*)$/.test(pathname)

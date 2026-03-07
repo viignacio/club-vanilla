@@ -154,10 +154,43 @@ export const pageQuery = groq`
   }
 `;
 
+// Fetches all menuSection blocks site-wide, flattened across pages.
+// Only includes items with a numeric price (orderable items).
+export const orderMenuQuery = groq`
+  *[_type == "page"][].blocks[_type == "menuSection"] {
+    _key,
+    sectionHeading { en, ja },
+    "categories": categories[] {
+      _key,
+      name { en, ja },
+      "items": items[defined(price) && price > 0] {
+        _key,
+        name { en, ja },
+        description { en, ja },
+        price,
+        taxIncluded,
+        "imageUrl": image.asset->url
+      }
+    },
+    "items": items[defined(price) && price > 0] {
+      _key,
+      name { en, ja },
+      description { en, ja },
+      price,
+      taxIncluded,
+      "imageUrl": image.asset->url
+    }
+  }
+`;
+
 export const dictionaryQuery = groq`
   *[_type == "dictionary"][0] {
     entries[] { key, en, ja }
   }
+`;
+
+export const adminLogoQuery = groq`
+  *[_type == "siteSettings"][0].logo.asset->url
 `;
 
 export const promotionQuery = groq`

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   const lang = rawLang as Lang;
   const page = await getPage("home");
   return {
-    title: getLocalized(page?.seoTitle, lang) || "Club Vanilla",
+    title: getLocalized(page?.seoTitle, lang) || (lang === "ja" ? "ホーム" : "Home"),
     description: getLocalized(page?.seoDescription, lang) || "Philippine Show Pub in Oyama, Tochigi",
   };
 }

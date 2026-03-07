@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: MenuPageProps): Promise<Metad
   const lang = rawLang as Lang;
   const page = await getPage("menu");
   return {
-    title: getLocalized(page?.seoTitle, lang) || `Menu | Club Vanilla`,
+    title: getLocalized(page?.seoTitle, lang) || (lang === "ja" ? "メニュー" : "Menu"),
     description: getLocalized(page?.seoDescription, lang) || "Food and drinks menu at Club Vanilla",
   };
 }
