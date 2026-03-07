@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { OrderSession } from "@/lib/supabase/types";
 import type { OrderMenuSection, OrderMenuItem } from "@/lib/types/order";
@@ -14,26 +14,32 @@ interface OrderUIProps {
   menuSections: OrderMenuSection[];
 }
 
+interface Section {
+  key: string;
+  label: string;
+  items: OrderMenuItem[];
+}
+
 function loc(field: { en?: string; ja?: string } | undefined, lang: Lang): string {
   if (!field) return "";
   return (lang === "ja" ? field.ja : field.en) || field.en || field.ja || "";
 }
 
-function buildTabs(sections: OrderMenuSection[], lang: Lang) {
-  const tabs: { key: string; label: string; items: OrderMenuItem[] }[] = [];
+function buildSections(sections: OrderMenuSection[], lang: Lang): Section[] {
+  const result: Section[] = [];
   for (const section of sections) {
     if (section.categories?.length) {
       for (const cat of section.categories) {
         const items = cat.items?.filter((i) => i.price > 0) ?? [];
-        if (items.length) tabs.push({ key: cat._key, label: loc(cat.name, lang) || "Menu", items });
+        if (items.length) result.push({ key: cat._key, label: loc(cat.name, lang) || "Menu", items });
       }
     }
     const flatItems = section.items?.filter((i) => i.price > 0) ?? [];
     if (flatItems.length) {
-      tabs.push({ key: section._key, label: loc(section.sectionHeading, lang) || "Menu", items: flatItems });
+      result.push({ key: section._key, label: loc(section.sectionHeading, lang) || "Menu", items: flatItems });
     }
   }
-  return tabs;
+  return result;
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
@@ -45,9 +51,8 @@ function Header({
   cartCount: number; onCartOpen: () => void; view: View; onBack: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur-md border-b border-white/5">
-      <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-4 max-w-7xl mx-auto">
-        {/* Left */}
+    <header className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur-md border-b border-white/5 shrink-0">
+      <div className="flex items-center justify-between gap-4 px-4 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 min-w-0">
           {view !== "menu" && (
             <button onClick={onBack} className="lg:hidden text-white/50 hover:text-white transition-colors shrink-0">
@@ -57,25 +62,24 @@ function Header({
             </button>
           )}
           <div className="min-w-0">
-            <p className="font-bold text-base sm:text-lg leading-tight bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent">
+            <p className="font-bold text-base leading-tight bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent">
               Club Vanilla
             </p>
             <p className="text-white/40 text-xs truncate">{tableName}</p>
           </div>
         </div>
 
-        {/* Right */}
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onLangToggle}
-            className="text-xs font-semibold px-3 py-1.5 rounded-full border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-all"
+            className="text-xs font-semibold px-3 py-2 rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-all"
           >
             {lang === "en" ? "日本語" : "English"}
           </button>
           {view === "menu" && (
             <button
               onClick={onCartOpen}
-              className="lg:hidden relative flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-pink/10 border border-brand-pink/30 text-brand-pink text-xs font-semibold hover:bg-brand-pink/20 transition-all"
+              className="lg:hidden relative flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-pink/10 border border-brand-pink/30 text-brand-pink text-xs font-semibold hover:bg-brand-pink/20 transition-all"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.98-7.065a48.108 48.108 0 00-3.476-.384M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
@@ -93,6 +97,73 @@ function Header({
   );
 }
 
+// ─── Category Dropdown ────────────────────────────────────────────────────────
+
+function CategoryDropdown({ sections, activeSectionKey, onSelect }: {
+  sections: Section[];
+  activeSectionKey: string | null;
+  onSelect: (key: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const activeSection = sections.find((s) => s.key === activeSectionKey) ?? sections[0];
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    // Outer: padding + border. Matches card's top spacing on desktop.
+    <div className="px-4 py-4 border-b border-white/5 shrink-0 bg-dark-900">
+      {/* Inner relative wrapper so dropdown is anchored to the button width exactly */}
+      <div ref={ref} className="relative">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/10 bg-white/[0.03] text-white text-sm font-semibold hover:border-white/20 transition-all"
+        >
+          <span>{activeSection?.label ?? "—"}</span>
+          <svg
+            className={`w-4 h-4 text-white/40 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {open && (
+          // left-0 right-0 relative to the inner wrapper = same width as the button
+          <div className="absolute top-full left-0 right-0 mt-1 z-30 rounded-xl border border-white/10 bg-dark-800 shadow-2xl overflow-hidden">
+            {sections.map((section, i) => (
+              <button
+                key={section.key}
+                onClick={() => { onSelect(section.key); setOpen(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-left transition-colors ${
+                  i > 0 ? "border-t border-white/5" : ""
+                } ${
+                  section.key === activeSectionKey
+                    ? "bg-brand-pink/10 text-white"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <span>{section.label}</span>
+                {section.key === activeSectionKey && (
+                  <svg className="w-4 h-4 text-brand-pink shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-12.75" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Menu Item Card ───────────────────────────────────────────────────────────
 
 function MenuItemCard({ item, lang, quantity, onAdd, onRemove }: {
@@ -103,20 +174,20 @@ function MenuItemCard({ item, lang, quantity, onAdd, onRemove }: {
   const taxLabel = item.taxIncluded ? (lang === "ja" ? "税込" : "Tax incl.") : "";
 
   return (
-    <div className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+    <div className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
       quantity > 0 ? "border-brand-pink/30 bg-brand-pink/5" : "border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]"
     }`}>
       {item.imageUrl && (
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden bg-white/5">
-          <Image src={item.imageUrl} alt={name} fill className="object-cover" sizes="80px" />
+        <div className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-white/5">
+          <Image src={item.imageUrl} alt={name} fill className="object-cover" sizes="64px" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-white font-semibold text-sm sm:text-base leading-snug">{name}</p>
+        <p className="text-white font-semibold text-sm leading-snug">{name}</p>
         {description && (
           <p className="text-white/40 text-xs mt-1 leading-snug line-clamp-2">{description}</p>
         )}
-        <p className="text-brand-pink font-bold mt-1.5 text-sm sm:text-base">
+        <p className="text-brand-pink font-bold mt-2 text-sm">
           ¥{item.price.toLocaleString()}
           {taxLabel && <span className="text-white/30 text-xs font-normal ml-1">{taxLabel}</span>}
         </p>
@@ -132,7 +203,7 @@ function MenuItemCard({ item, lang, quantity, onAdd, onRemove }: {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
               </svg>
             </button>
-            <span className="text-white font-bold text-sm w-5 text-center tabular-nums">{quantity}</span>
+            <span className="text-white font-bold text-sm w-4 text-center tabular-nums">{quantity}</span>
           </>
         )}
         <button
@@ -169,16 +240,16 @@ function CartPanel({ cart, lang, onRemove, onAdd, onSubmit, isSubmitting }: {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Cart title — desktop only */}
-      <div className="hidden lg:block px-6 py-5 border-b border-white/5">
-        <h2 className="text-white font-bold text-lg">{t.title}</h2>
+    <div className="flex flex-col h-full min-h-0">
+      {/* Title */}
+      <div className="px-4 py-4 border-b border-white/5 shrink-0">
+        <h2 className="text-white font-bold text-base">{t.title}</h2>
       </div>
 
       {cart.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
-          <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
-            <svg className="w-7 h-7 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center min-h-0">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+            <svg className="w-8 h-8 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.98-7.065a48.108 48.108 0 00-3.476-.384M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
           </div>
@@ -187,14 +258,15 @@ function CartPanel({ cart, lang, onRemove, onAdd, onSubmit, isSubmitting }: {
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col gap-2">
+          {/* Items — scrollable, shrinks to leave room for CTA */}
+          <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 flex flex-col gap-2">
             {cart.map((item) => {
               const name = lang === "ja" ? (item.item_name_ja || item.item_name_en) : item.item_name_en;
               return (
-                <div key={item.item_key} className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0">
+                <div key={item.item_key} className="flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.03]">
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium leading-snug">{name}</p>
-                    <p className="text-white/40 text-xs mt-0.5">¥{item.price.toLocaleString()} × {item.quantity}</p>
+                    <p className="text-white/40 text-xs mt-1">¥{item.price.toLocaleString()} × {item.quantity}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button onClick={() => onRemove(item.item_key)}
@@ -218,14 +290,15 @@ function CartPanel({ cart, lang, onRemove, onAdd, onSubmit, isSubmitting }: {
               );
             })}
 
-            <div className="pt-2">
-              <textarea value={note} onChange={(e) => setNote(e.target.value)}
-                placeholder={t.note} rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/8 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 resize-none transition-colors" />
-            </div>
+            <textarea
+              value={note} onChange={(e) => setNote(e.target.value)}
+              placeholder={t.note} rows={3}
+              className="w-full px-4 py-3 mt-2 rounded-xl bg-white/5 border border-white/8 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 resize-none transition-colors"
+            />
           </div>
 
-          <div className="px-4 sm:px-6 pb-8 pt-4 border-t border-white/5 shrink-0">
+          {/* Total + CTA — always pinned at bottom */}
+          <div className="px-4 py-4 border-t border-white/5 shrink-0">
             <div className="flex items-center justify-between mb-4">
               <span className="text-white/50 text-sm">{t.total}</span>
               <span className="text-white text-2xl font-bold tabular-nums">¥{total.toLocaleString()}</span>
@@ -255,7 +328,7 @@ function Confirmation({ lang, onOrderMore }: { lang: Lang; onOrderMore: () => vo
         <div className="absolute inset-0 rounded-full bg-brand-pink/10 blur-xl" />
       </div>
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+        <h2 className="text-xl font-bold text-white mb-2">
           {lang === "ja" ? "ご注文ありがとうございます！" : "Order placed!"}
         </h2>
         <p className="text-white/50 text-sm leading-relaxed max-w-xs mx-auto">
@@ -275,13 +348,13 @@ function Confirmation({ lang, onOrderMore }: { lang: Lang; onOrderMore: () => vo
 export default function OrderUI({ session, menuSections }: OrderUIProps) {
   const [lang, setLang] = useState<Lang>("ja");
   const [view, setView] = useState<View>("menu");
-  const [activeTabKey, setActiveTabKey] = useState<string | null>(null);
+  const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const tabs = useMemo(() => buildTabs(menuSections, lang), [menuSections, lang]);
-  const currentTabKey = activeTabKey ?? tabs[0]?.key ?? null;
-  const currentItems = tabs.find((t) => t.key === currentTabKey)?.items ?? [];
+  const sections = useMemo(() => buildSections(menuSections, lang), [menuSections, lang]);
+  const currentSectionKey = activeSectionKey ?? sections[0]?.key ?? null;
+  const currentItems = sections.find((s) => s.key === currentSectionKey)?.items ?? [];
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
   const cartTotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
@@ -305,7 +378,7 @@ export default function OrderUI({ session, menuSections }: OrderUIProps) {
   }
 
   function addByKey(key: string) {
-    const item = tabs.flatMap((t) => t.items).find((i) => i._key === key);
+    const item = sections.flatMap((s) => s.items).find((i) => i._key === key);
     if (item) addToCart(item);
   }
 
@@ -326,7 +399,8 @@ export default function OrderUI({ session, menuSections }: OrderUIProps) {
   }
 
   return (
-    <div className="min-h-screen bg-dark-900 flex flex-col">
+    // h-dvh locks the layout to the viewport — prevents the cart CTA from scrolling off-screen
+    <div className="h-dvh bg-dark-900 flex flex-col overflow-hidden">
       {/* Ambient gradient */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-pink/5 rounded-full blur-3xl" />
@@ -340,38 +414,34 @@ export default function OrderUI({ session, menuSections }: OrderUIProps) {
         view={view} onBack={() => setView("menu")}
       />
 
-      {/* Body */}
+      {/* Body — fills remaining viewport height, no overflow */}
       <div className="flex-1 flex min-h-0 relative max-w-7xl w-full mx-auto">
 
         {/* ── Menu panel ── */}
-        <div className={`flex flex-col flex-1 min-w-0 overflow-hidden ${view !== "menu" ? "hidden lg:flex" : "flex"}`}>
-          {/* Category tabs */}
-          {tabs.length > 1 && (
-            <div className="flex gap-2 px-4 sm:px-6 py-3 overflow-x-auto no-scrollbar border-b border-white/5 shrink-0">
-              {tabs.map((tab) => (
-                <button key={tab.key} onClick={() => setActiveTabKey(tab.key)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap shrink-0 transition-all ${
-                    tab.key === currentTabKey
-                      ? "bg-gradient-to-r from-brand-pink to-brand-purple text-white shadow-lg shadow-brand-pink/20"
-                      : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-                  }`}>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        <div className={`flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden ${view !== "menu" ? "hidden lg:flex" : "flex"}`}>
+
+          {/* Category dropdown */}
+          {sections.length > 1 && (
+            <CategoryDropdown
+              sections={sections}
+              activeSectionKey={currentSectionKey}
+              onSelect={(key) => setActiveSectionKey(key)}
+            />
           )}
 
-          {/* Items */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 pb-28 lg:pb-6 flex flex-col gap-2">
+          {/* Items — scrollable within panel */}
+          <div className="flex-1 overflow-y-auto no-scrollbar min-h-0 px-4 py-4 pb-32 lg:pb-8 flex flex-col gap-2">
             {currentItems.length === 0 ? (
               <p className="text-white/20 text-sm text-center mt-16">
                 {lang === "ja" ? "メニューがありません" : "No items available"}
               </p>
             ) : (
               currentItems.map((item) => (
-                <MenuItemCard key={item._key} item={item} lang={lang}
+                <MenuItemCard
+                  key={item._key} item={item} lang={lang}
                   quantity={getQty(item._key)}
-                  onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item._key)} />
+                  onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item._key)}
+                />
               ))
             )}
           </div>
@@ -390,16 +460,23 @@ export default function OrderUI({ session, menuSections }: OrderUIProps) {
         </div>
 
         {/* ── Cart / Confirmation panel ── */}
+        {/* Desktop: floating card, always visible alongside menu */}
+        {/* Mobile: full-screen overlay when view === "cart" */}
         <div className={`
-          lg:w-[380px] lg:shrink-0 lg:border-l lg:border-white/5 lg:flex lg:flex-col
-          ${view === "menu" ? "hidden lg:flex" : "flex flex-col flex-1"}
-          ${view === "confirmation" ? "" : ""}
+          lg:w-2/5 lg:shrink-0 lg:flex lg:flex-col lg:min-h-0 lg:py-4 lg:pr-4 lg:pl-3
+          ${view === "menu" ? "hidden lg:flex" : "flex flex-col flex-1 min-h-0"}
         `}>
-          {view === "confirmation"
-            ? <Confirmation lang={lang} onOrderMore={() => setView("menu")} />
-            : <CartPanel cart={cart} lang={lang} onRemove={removeFromCart} onAdd={addByKey}
-                onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-          }
+          <div className={`flex flex-col flex-1 min-h-0 ${
+            view !== "confirmation"
+              ? "lg:rounded-2xl lg:border lg:border-white/8 lg:bg-white/[0.02] lg:overflow-hidden"
+              : ""
+          }`}>
+            {view === "confirmation"
+              ? <Confirmation lang={lang} onOrderMore={() => setView("menu")} />
+              : <CartPanel cart={cart} lang={lang} onRemove={removeFromCart} onAdd={addByKey}
+                  onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+            }
+          </div>
         </div>
       </div>
     </div>
