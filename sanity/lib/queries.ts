@@ -48,7 +48,8 @@ export const imageWithContentFields = `
 
 export const basicContentFields = `
   image { ..., asset->{ _id, url, metadata { lqip } } },
-  imagePosition,
+  video { ..., asset->{ _id, url, mimeType, size } },
+  mediaPosition,
   contentAlignment,
   heading { ${localizedStringFields} },
   body {

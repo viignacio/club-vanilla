@@ -48,7 +48,16 @@ export interface BasicContentBlock {
   _type: "basicContent";
   _key: string;
   image?: SanityImage;
-  imagePosition?: "left" | "right" | "center";
+  video?: {
+    _type: "file";
+    asset: {
+      _id: string;
+      url: string;
+      mimeType: string;
+      size: number;
+    };
+  };
+  mediaPosition?: "left" | "right" | "center";
   heading?: LocalizedString;
   body?: LocalizedRichText;
   contentAlignment?: "left" | "center" | "right";

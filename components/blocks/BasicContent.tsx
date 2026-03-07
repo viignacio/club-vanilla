@@ -55,9 +55,9 @@ export default function BasicContent({ block, lang }: BasicContentProps) {
   const heading = getLocalized(block.heading, lang);
   const body = block.body?.[lang] ?? block.body?.en ?? [];
   const ctaLabel = getLocalized(block.ctaButton?.label, lang);
-  const imagePosition = block.imagePosition ?? "right";
-  const imageCenter = imagePosition === "center";
-  const imageLeft = imagePosition === "left";
+  const mediaPosition = block.mediaPosition ?? "right";
+  const mediaCenter = mediaPosition === "center";
+  const mediaLeft = mediaPosition === "left";
   const bgClass = bgMap[block.backgroundColor ?? "dark"] ?? bgMap.dark;
   const alignment = block.contentAlignment ?? "left";
 
@@ -69,23 +69,39 @@ export default function BasicContent({ block, lang }: BasicContentProps) {
   const imageUrl = block.image
     ? urlFor(block.image).width(800).height(600).url()
     : null;
+  const videoUrl = block.video?.asset?.url || null;
+  const hasMedia = imageUrl || videoUrl;
+  const mediaUrl = videoUrl || imageUrl; // Video takes precedence
+  const isVideo = !!videoUrl;
 
   return (
     <section className={`${bgClass} pt-16 sm:pt-24`}>
       <div className="block-container">
-        {imageCenter ? (
-          /* Center layout: image full-width stacked above text */
+        {mediaCenter ? (
+          /* Center layout: media full-width stacked above text */
           <div className="flex flex-col gap-8">
-            {imageUrl && (
+            {hasMedia && (
               <div className="w-full">
                 <div className="relative rounded-2xl overflow-hidden aspect-[16/9] shadow-2xl shadow-brand-purple/20 ring-1 ring-brand-purple/20">
-                  <Image
-                    src={imageUrl}
-                    alt={heading || ""}
-                    fill
-                    className="object-cover"
-                    sizes="100vw"
-                  />
+                  {isVideo ? (
+                    <video
+                      src={mediaUrl!}
+                      loop
+                      muted
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-cover"
+                      poster={imageUrl || undefined}
+                    />
+                  ) : (
+                    <Image
+                      src={mediaUrl!}
+                      alt={heading || ""}
+                      fill
+                      className="object-cover"
+                      sizes="100vw"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-dark-900/40 to-transparent" />
                 </div>
               </div>
@@ -117,24 +133,36 @@ export default function BasicContent({ block, lang }: BasicContentProps) {
           /* Left / Right layout: side-by-side */
           <div
             className={`flex flex-col ${
-              imageLeft ? "lg:flex-row" : "lg:flex-row-reverse"
+              mediaLeft ? "lg:flex-row" : "lg:flex-row-reverse"
             } gap-12 lg:gap-16 items-center`}
           >
-            {imageUrl && (
+            {hasMedia && (
               <div className="w-full lg:w-1/2">
                 <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-2xl shadow-brand-purple/20 ring-1 ring-brand-purple/20">
-                  <Image
-                    src={imageUrl}
-                    alt={heading || ""}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
+                  {isVideo ? (
+                    <video
+                      src={mediaUrl!}
+                      loop
+                      muted
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-cover"
+                      poster={imageUrl || undefined}
+                    />
+                  ) : (
+                    <Image
+                      src={mediaUrl!}
+                      alt={heading || ""}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-dark-900/40 to-transparent" />
                 </div>
               </div>
             )}
-            <div className={`${imageUrl ? "w-full lg:w-1/2" : "w-full max-w-2xl mx-auto"} flex flex-col gap-6 ${textAlignClass} ${itemsAlignClass}`}>
+            <div className={`${hasMedia ? "w-full lg:w-1/2" : "w-full max-w-2xl mx-auto"} flex flex-col gap-6 ${textAlignClass} ${itemsAlignClass}`}>
               {heading && (
                 <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
                   <span className="bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent">

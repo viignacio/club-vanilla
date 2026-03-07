@@ -29,7 +29,7 @@ const menuItemFields = [
     title: "Tax Included?",
     type: "boolean",
     description: 'Appends "(Incl. Tax)" / "（税込）" after the price.',
-    initialValue: false,
+    initialValue: true,
   }),
   defineField({
     name: "priceDisplay",
