@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Brand Colors */
+  --color-brand-pink: #FF69B4;
+  --color-brand-pink-light: #FFB3D9;
+  --color-brand-pink-dark: #E91E8C;
+
+  --color-brand-purple: #8B5CF6;
+  --color-brand-purple-light: #C4B5FD;
+  --color-brand-purple-dark: #6D28D9;
+
+  --color-brand-navy: #1E1B4B;
+  --color-brand-navy-mid: #2D2A6E;
+  --color-brand-navy-light: #3730A3;
+
+  --color-dark-900: #0D0B1E;
+  --color-dark-800: #12102A;
+  --color-dark-700: #1A1735;
+
+  /* Fonts */
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+:root {
+  --background: #0D0B1E;
+  --foreground: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
+
+/* Shared content container for non-hero blocks */
+.block-container {
+  width: 100%;
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (max-width: 768px) {
+  .block-container {
+    max-width: 100%;
+  }
+}
+
+/* Navbar link underline — expands from center on hover */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, var(--color-brand-pink), var(--color-brand-purple));
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
+  border-radius: 9999px;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* Promotion bar marquee */
+@keyframes marquee-left {
+  from { transform: translateX(100vw); }
+  to   { transform: translateX(-100%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-100vw); }
+  to   { transform: translateX(100%); }
+}
+
+.marquee-left  { display: inline-block; animation: marquee-left  20s linear infinite; }
+.marquee-right { display: inline-block; animation: marquee-right 20s linear infinite; }
+
+/* Seamless loop marquee — requires two identical sibling elements */
+@keyframes marquee-loop-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes marquee-loop-right {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+
+.marquee-loop-left  { display: flex; flex-shrink: 0; animation: marquee-loop-left  45s linear infinite; }
+.marquee-loop-right { display: flex; flex-shrink: 0; animation: marquee-loop-right 45s linear infinite; }
+
+/* Neon Campaign block — pulsing pink border glow */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px 2px rgba(255, 105, 180, 0.45), 0 0 24px 4px rgba(255, 105, 180, 0.2);
+    border-color: rgba(255, 105, 180, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 18px 5px rgba(255, 105, 180, 0.75), 0 0 48px 10px rgba(255, 105, 180, 0.35);
+    border-color: rgba(255, 105, 180, 0.9);
+  }
+}
+
+.neon-pulse {
+  border: 1.5px solid rgba(255, 105, 180, 0.55);
+  animation: neon-pulse 2.5s ease-in-out infinite;
+}
