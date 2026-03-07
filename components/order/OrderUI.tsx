@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { OrderSession } from "@/lib/supabase/types";
-import type { OrderMenuSection, OrderMenuItem } from "@/lib/types/order";
+import type { OrderMenuCategory, OrderMenuItem } from "@/lib/types/order";
 import type { CartItem } from "@/lib/supabase/types";
 
 type Lang = "en" | "ja";
@@ -11,7 +11,7 @@ type View = "menu" | "cart" | "confirmation";
 
 interface OrderUIProps {
   session: OrderSession;
-  menuSections: OrderMenuSection[];
+  categories: OrderMenuCategory[];
 }
 
 interface Section {
@@ -25,21 +25,14 @@ function loc(field: { en?: string; ja?: string } | undefined, lang: Lang): strin
   return (lang === "ja" ? field.ja : field.en) || field.en || field.ja || "";
 }
 
-function buildSections(sections: OrderMenuSection[], lang: Lang): Section[] {
-  const result: Section[] = [];
-  for (const section of sections) {
-    if (section.categories?.length) {
-      for (const cat of section.categories) {
-        const items = cat.items?.filter((i) => i.price > 0) ?? [];
-        if (items.length) result.push({ key: cat._key, label: loc(cat.name, lang) || "Menu", items });
-      }
-    }
-    const flatItems = section.items?.filter((i) => i.price > 0) ?? [];
-    if (flatItems.length) {
-      result.push({ key: section._key, label: loc(section.sectionHeading, lang) || "Menu", items: flatItems });
-    }
-  }
-  return result;
+function buildSections(categories: OrderMenuCategory[], lang: Lang): Section[] {
+  return categories
+    .map((cat) => ({
+      key: cat._key,
+      label: loc(cat.name, lang) || "Menu",
+      items: cat.items?.filter((i) => i.price > 0) ?? [],
+    }))
+    .filter((s) => s.items.length > 0);
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
@@ -345,14 +338,14 @@ function Confirmation({ lang, onOrderMore }: { lang: Lang; onOrderMore: () => vo
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function OrderUI({ session, menuSections }: OrderUIProps) {
+export default function OrderUI({ session, categories }: OrderUIProps) {
   const [lang, setLang] = useState<Lang>("ja");
   const [view, setView] = useState<View>("menu");
   const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const sections = useMemo(() => buildSections(menuSections, lang), [menuSections, lang]);
+  const sections = useMemo(() => buildSections(categories, lang), [categories, lang]);
   const currentSectionKey = activeSectionKey ?? sections[0]?.key ?? null;
   const currentItems = sections.find((s) => s.key === currentSectionKey)?.items ?? [];
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
@@ -364,7 +357,7 @@ export default function OrderUI({ session, menuSections }: OrderUIProps) {
     setCart((prev) => {
       const existing = prev.find((i) => i.item_key === item._key);
       if (existing) return prev.map((i) => i.item_key === item._key ? { ...i, quantity: i.quantity + 1 } : i);
-      return [...prev, { item_key: item._key, item_name_en: item.name.en, item_name_ja: item.name.ja ?? null, price: item.price, quantity: 1 }];
+      return [...prev, { item_key: item._key, item_name_en: item.name.en || item.name.ja || "", item_name_ja: item.name.ja ?? null, price: item.price, quantity: 1 }];
     });
   }
 

@@ -1,6 +1,7 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
+import { media } from "sanity-plugin-media";
 import { schemaTypes } from "./schemas";
 
 export default defineConfig({
@@ -15,12 +16,19 @@ export default defineConfig({
           .title("Content")
           .items([
             S.listItem()
-              .title("Site Settings")
-              .id("siteSettings")
+              .title("Pages")
+              .child(S.documentTypeList("page")),
+            S.listItem()
+              .title("Menus")
+              .child(S.documentTypeList("menu")),
+            S.divider(),
+            S.listItem()
+              .title("Promotion Bar")
+              .id("promotion")
               .child(
                 S.document()
-                  .schemaType("siteSettings")
-                  .documentId("siteSettings")
+                  .schemaType("promotion")
+                  .documentId("promotion")
               ),
             S.listItem()
               .title("Dictionary")
@@ -31,20 +39,17 @@ export default defineConfig({
                   .documentId("dictionary")
               ),
             S.listItem()
-              .title("Promotion Bar")
-              .id("promotion")
+              .title("Site Settings")
+              .id("siteSettings")
               .child(
                 S.document()
-                  .schemaType("promotion")
-                  .documentId("promotion")
+                  .schemaType("siteSettings")
+                  .documentId("siteSettings")
               ),
-            S.divider(),
-            S.listItem()
-              .title("Pages")
-              .child(S.documentTypeList("page")),
           ]),
     }),
     visionTool(),
+    media(),
   ],
   schema: {
     types: schemaTypes,

@@ -12,7 +12,8 @@
       "WebSearch",
       "Bash(npm install @supabase/supabase-js)",
       "Bash(npm install qrcode)",
-      "Bash(npm install -D @types/qrcode)"
+      "Bash(npm install -D @types/qrcode)",
+      "Bash(npm install sanity-plugin-media)"
     ]
   }
 }

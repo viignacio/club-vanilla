@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySession, ORDER_SESSION_COOKIE } from "@/lib/supabase/session";
+import { supabase } from "@/lib/supabase/client";
 import { client } from "@/sanity/lib/client";
 import { orderMenuQuery } from "@/sanity/lib/queries";
 import OrderEntry from "@/components/order/OrderEntry";
 import OrderUI from "@/components/order/OrderUI";
-import type { OrderMenuSection } from "@/lib/types/order";
+import type { OrderMenuCategory } from "@/lib/types/order";
 
 export const metadata = {
   title: "Order",
@@ -22,17 +23,23 @@ export default async function OrderPage({
   const sessionToken = cookieStore.get(ORDER_SESSION_COOKIE)?.value;
   const session = sessionToken ? await verifySession(sessionToken) : null;
 
-  // Valid session — fetch menu and show order UI
-  if (session) {
-    const menuSections: OrderMenuSection[] = await client.fetch(orderMenuQuery, {}, { next: { revalidate: 300 } });
-    return <OrderUI session={session} menuSections={menuSections} />;
+  // QR params take priority — always create a fresh session when scanning
+  if (params.table && params.key) {
+    return <OrderEntry tableId={params.table} secretKey={params.key} />;
   }
 
-  // No session — need QR params to establish one
-  if (!params.table || !params.key) {
+  // No QR params — require a valid existing session
+  if (!session) {
     redirect("/order/invalid");
   }
 
-  // Has QR params — let client component handle validation + cookie setting
-  return <OrderEntry tableId={params.table} secretKey={params.key} />;
+  // Valid session — fetch menu and show order UI
+  const [categories, tableRow] = await Promise.all([
+    client.fetch<OrderMenuCategory[]>(orderMenuQuery, {}, { next: { revalidate: 300 } }),
+    supabase.from("tables").select("name").eq("id", session.tableId).single(),
+  ]);
+  const freshSession = tableRow.data?.name
+    ? { ...session, tableName: tableRow.data.name }
+    : session;
+  return <OrderUI session={freshSession} categories={categories} />;
 }

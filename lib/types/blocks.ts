@@ -99,7 +99,6 @@ export interface MenuSectionBlock {
   sectionHeading?: LocalizedString;
   sectionSubheading?: LocalizedString;
   categories?: MenuCategory[];
-  items?: MenuItem[];
   displayStyle?: "grid" | "list";
 }
 

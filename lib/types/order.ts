@@ -12,10 +12,3 @@ export interface OrderMenuCategory {
   name: { en: string; ja?: string };
   items: OrderMenuItem[];
 }
-
-export interface OrderMenuSection {
-  _key: string;
-  sectionHeading?: { en?: string; ja?: string };
-  categories?: OrderMenuCategory[];
-  items?: OrderMenuItem[];
-}

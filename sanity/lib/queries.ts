@@ -88,12 +88,11 @@ export const menuSectionFields = `
   sectionHeading { ${localizedStringFields} },
   sectionSubheading { ${localizedStringFields} },
   displayStyle,
-  categories[] {
-    _key,
+  categories[]-> {
+    "_key": _id,
     name { ${localizedStringFields} },
     items[] { ${menuItemFields} }
-  },
-  items[] { ${menuItemFields} }
+  }
 `;
 
 export const contactFormBlockFields = `
@@ -154,24 +153,11 @@ export const pageQuery = groq`
   }
 `;
 
-// Fetches all menuSection blocks site-wide, flattened across pages.
-// Only includes items with a numeric price (orderable items).
+// Fetches all menu category documents with orderable items (price > 0).
 export const orderMenuQuery = groq`
-  *[_type == "page"][].blocks[_type == "menuSection"] {
-    _key,
-    sectionHeading { en, ja },
-    "categories": categories[] {
-      _key,
-      name { en, ja },
-      "items": items[defined(price) && price > 0] {
-        _key,
-        name { en, ja },
-        description { en, ja },
-        price,
-        taxIncluded,
-        "imageUrl": image.asset->url
-      }
-    },
+  *[_type == "menu"] | order(_createdAt asc) {
+    "_key": _id,
+    name { en, ja },
     "items": items[defined(price) && price > 0] {
       _key,
       name { en, ja },

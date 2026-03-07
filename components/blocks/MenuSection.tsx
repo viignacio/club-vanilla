@@ -106,7 +106,6 @@ export default function MenuSection({ block, lang }: MenuSectionProps) {
   const subheading = getLocalized(block.sectionSubheading, lang);
   const style = block.displayStyle ?? "list";
   const categories = block.categories ?? [];
-  const items = block.items ?? [];
 
   return (
     <section className="pt-16 sm:pt-24">
@@ -127,15 +126,11 @@ export default function MenuSection({ block, lang }: MenuSectionProps) {
             </div>
           )}
 
-          {categories.length > 0 ? (
-            <div className="flex flex-col gap-6">
-              {categories.map((category) => (
-                <MenuCategoryGroup key={category._key} category={category} lang={lang} style={style} />
-              ))}
-            </div>
-          ) : (
-            <MenuItemsGroup items={items} lang={lang} style={style} />
-          )}
+          <div className="flex flex-col gap-6">
+            {categories.map((category) => (
+              <MenuCategoryGroup key={category._key} category={category} lang={lang} style={style} />
+            ))}
+          </div>
         </div>
       </div>
     </section>

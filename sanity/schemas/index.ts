@@ -12,6 +12,7 @@ import { neonCampaign } from "./objects/neonCampaign";
 import { dictionary } from "./documents/dictionary";
 import { siteSettings } from "./documents/siteSettings";
 import { promotion } from "./documents/promotion";
+import { menu } from "./documents/menu";
 import { page } from "./documents/page";
 
 export const schemaTypes = [
@@ -32,5 +33,6 @@ export const schemaTypes = [
   dictionary,
   siteSettings,
   promotion,
+  menu,
   page,
 ];
