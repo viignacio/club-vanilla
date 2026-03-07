@@ -6,6 +6,12 @@ export const faqSection = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "headingAlignment",
       title: "Heading Alignment",
       type: "string",
@@ -58,9 +64,9 @@ export const faqSection = defineType({
     }),
   ],
   preview: {
-    select: { title: "sectionHeading.en" },
+    select: { title: "internalTitle" },
     prepare({ title }) {
-      return { title: title || "FAQ Section" };
+      return { title: "FAQ Section", subtitle: title };
     },
   },
 });

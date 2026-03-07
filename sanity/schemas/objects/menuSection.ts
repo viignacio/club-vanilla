@@ -6,6 +6,12 @@ export const menuSection = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "sectionHeading",
       title: "Section Heading",
       type: "localizedString",
@@ -37,9 +43,9 @@ export const menuSection = defineType({
     }),
   ],
   preview: {
-    select: { title: "sectionHeading.en" },
+    select: { title: "internalTitle" },
     prepare({ title }) {
-      return { title: title || "Menu Section" };
+      return { title: "Menu Section", subtitle: title };
     },
   },
 });

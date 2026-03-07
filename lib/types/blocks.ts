@@ -181,6 +181,25 @@ export interface ImagePairWithContentBlock {
   subtitle?: LocalizedRichText;
 }
 
+// Card Grid Block
+export interface CardGridItem {
+  _key: string;
+  iconImage?: SanityImage;
+  iconEmoji?: string;
+  headline?: LocalizedString;
+  subheadline?: LocalizedString;
+  body?: LocalizedString;
+}
+
+export interface CardGridBlock {
+  _type: "cardGrid";
+  _key: string;
+  sectionHeadline?: LocalizedString;
+  sectionSubheadline?: LocalizedString;
+  columns?: 2 | 3;
+  items?: CardGridItem[];
+}
+
 // Neon Campaign Block
 export interface NeonCampaignBlock {
   _type: "neonCampaign";
@@ -201,4 +220,5 @@ export type PageBlock =
   | FaqSectionBlock
   | MenuSectionBlock
   | ContactFormBlock
-  | NeonCampaignBlock;
+  | NeonCampaignBlock
+  | CardGridBlock;

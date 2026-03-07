@@ -6,6 +6,12 @@ export const heroBanner = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "backgroundType",
       title: "Background Type",
       type: "string",
@@ -111,9 +117,9 @@ export const heroBanner = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading.en", subtitle: "backgroundType" },
-    prepare({ title, subtitle }) {
-      return { title: title || "Hero Banner", subtitle: `Background: ${subtitle}` };
+    select: { title: "internalTitle" },
+    prepare({ title }) {
+      return { title: "Hero Banner", subtitle: title };
     },
   },
 });

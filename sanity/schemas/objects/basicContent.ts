@@ -6,6 +6,12 @@ export const basicContent = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "image",
       title: "Image (optional)",
       type: "image",
@@ -88,9 +94,9 @@ export const basicContent = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading.en", media: "image" },
+    select: { title: "internalTitle", media: "image" },
     prepare({ title, media }) {
-      return { title: title || "Basic Content", media };
+      return { title: "Basic Content", subtitle: title, media };
     },
   },
 });

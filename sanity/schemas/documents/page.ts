@@ -53,6 +53,7 @@ export const page = defineType({
         { type: "menuSection" },
         { type: "contactFormBlock" },
         { type: "neonCampaign" },
+        { type: "cardGrid" },
       ],
     }),
   ],

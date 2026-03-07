@@ -6,6 +6,12 @@ export const contactFormBlock = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "sectionHeading",
       title: "Section Heading",
       type: "localizedString",
@@ -17,9 +23,9 @@ export const contactFormBlock = defineType({
     }),
   ],
   preview: {
-    select: { title: "sectionHeading.en" },
+    select: { title: "internalTitle" },
     prepare({ title }) {
-      return { title: title || "Contact Form" };
+      return { title: "Contact Form", subtitle: title };
     },
   },
 });

@@ -121,6 +121,20 @@ export const imagePairWithContentFields = `
   }
 `;
 
+export const cardGridFields = `
+  sectionHeadline { ${localizedStringFields} },
+  sectionSubheadline { ${localizedStringFields} },
+  columns,
+  items[] {
+    _key,
+    iconImage { ..., asset->{ _id, url } },
+    iconEmoji,
+    headline { ${localizedStringFields} },
+    subheadline { ${localizedStringFields} },
+    body { en, ja }
+  }
+`;
+
 export const neonCampaignFields = `
   sectionTitle { ${localizedStringFields} },
   sectionSubtitle { ${localizedStringFields} },
@@ -148,7 +162,8 @@ export const pageQuery = groq`
       _type == "faqSection" => { ${faqSectionFields} },
       _type == "menuSection" => { ${menuSectionFields} },
       _type == "contactFormBlock" => { ${contactFormBlockFields} },
-      _type == "neonCampaign" => { ${neonCampaignFields} }
+      _type == "neonCampaign" => { ${neonCampaignFields} },
+      _type == "cardGrid" => { ${cardGridFields} }
     }
   }
 `;

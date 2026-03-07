@@ -32,6 +32,12 @@ export const neonCampaign = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "sectionTitle",
       title: "Section Title (optional)",
       type: "localizedString",
@@ -68,9 +74,9 @@ export const neonCampaign = defineType({
     }),
   ],
   preview: {
-    select: { title: "sectionTitle.en" },
+    select: { title: "internalTitle" },
     prepare({ title }) {
-      return { title: title || "Neon Campaign" };
+      return { title: "Neon Campaign", subtitle: title };
     },
   },
 });

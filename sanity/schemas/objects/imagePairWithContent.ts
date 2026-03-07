@@ -62,6 +62,12 @@ export const imagePairWithContent = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "internalTitle",
+      title: "Internal Title",
+      type: "string",
+      description: "Internal label for this block. Not shown on the frontend.",
+    }),
+    defineField({
       name: "contentAlignment",
       title: "Content Alignment",
       type: "string",
@@ -101,9 +107,9 @@ export const imagePairWithContent = defineType({
     }),
   ],
   preview: {
-    select: { title: "items.0.heading.en", media: "items.0.image" },
+    select: { title: "internalTitle", media: "items.0.image" },
     prepare({ title, media }) {
-      return { title: title || "Image Pair with Content", media };
+      return { title: "Image Pair with Content", subtitle: title, media };
     },
   },
 });

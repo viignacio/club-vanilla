@@ -9,6 +9,7 @@ import { faqSection } from "./objects/faqSection";
 import { menuSection } from "./objects/menuSection";
 import { contactFormBlock } from "./objects/contactFormBlock";
 import { neonCampaign } from "./objects/neonCampaign";
+import { cardGrid } from "./objects/cardGrid";
 import { dictionary } from "./documents/dictionary";
 import { siteSettings } from "./documents/siteSettings";
 import { promotion } from "./documents/promotion";
@@ -29,6 +30,7 @@ export const schemaTypes = [
   menuSection,
   contactFormBlock,
   neonCampaign,
+  cardGrid,
   // Documents
   dictionary,
   siteSettings,

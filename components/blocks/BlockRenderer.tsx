@@ -9,6 +9,7 @@ import FaqSection from "./FaqSection";
 import MenuSection from "./MenuSection";
 import ContactForm from "./ContactForm";
 import NeonCampaign from "./NeonCampaign";
+import CardGrid from "./CardGrid";
 
 interface BlockRendererProps {
   blocks: PageBlock[];
@@ -38,6 +39,8 @@ export default function BlockRenderer({ blocks, lang }: BlockRendererProps) {
             return <ContactForm key={block._key} block={block} lang={lang} />;
           case "neonCampaign":
             return <NeonCampaign key={block._key} block={block} lang={lang} />;
+          case "cardGrid":
+            return <CardGrid key={block._key} block={block} lang={lang} />;
           default:
             return null;
         }
