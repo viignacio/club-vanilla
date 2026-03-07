@@ -30,7 +30,7 @@ function buildSections(categories: OrderMenuCategory[], lang: Lang): Section[] {
     .map((cat) => ({
       key: cat._key,
       label: loc(cat.name, lang) || "Menu",
-      items: cat.items?.filter((i) => i.price > 0) ?? [],
+      items: cat.items?.filter((i) => i.price > 0 || i.unavailable) ?? [],
     }))
     .filter((s) => s.items.length > 0);
 }
@@ -165,10 +165,16 @@ function MenuItemCard({ item, lang, quantity, onAdd, onRemove }: {
   const name = loc(item.name, lang);
   const description = loc(item.description, lang);
   const taxLabel = item.taxIncluded ? (lang === "ja" ? "税込" : "Tax incl.") : "";
+  const isUnavailable = item.unavailable === true;
+  const unavailableLabel = lang === "ja" ? "品切れ" : "Unavailable";
 
   return (
     <div className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-      quantity > 0 ? "border-brand-pink/30 bg-brand-pink/5" : "border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]"
+      isUnavailable
+        ? "border-white/5 bg-white/[0.02] opacity-50"
+        : quantity > 0
+          ? "border-brand-pink/30 bg-brand-pink/5"
+          : "border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]"
     }`}>
       {item.imageUrl && (
         <div className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-white/5">
@@ -180,34 +186,40 @@ function MenuItemCard({ item, lang, quantity, onAdd, onRemove }: {
         {description && (
           <p className="text-white/40 text-xs mt-1 leading-snug line-clamp-2">{description}</p>
         )}
-        <p className="text-brand-pink font-bold mt-2 text-sm">
-          ¥{item.price.toLocaleString()}
-          {taxLabel && <span className="text-white/30 text-xs font-normal ml-1">{taxLabel}</span>}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {quantity > 0 && (
-          <>
-            <button
-              onClick={onRemove}
-              className="w-8 h-8 rounded-full border border-white/20 text-white flex items-center justify-center hover:border-brand-pink hover:text-brand-pink transition-colors"
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
-              </svg>
-            </button>
-            <span className="text-white font-bold text-sm w-4 text-center tabular-nums">{quantity}</span>
-          </>
+        {isUnavailable ? (
+          <p className="text-white/40 font-medium mt-2 text-sm">{unavailableLabel}</p>
+        ) : (
+          <p className="text-brand-pink font-bold mt-2 text-sm">
+            ¥{item.price.toLocaleString()}
+            {taxLabel && <span className="text-white/30 text-xs font-normal ml-1">{taxLabel}</span>}
+          </p>
         )}
-        <button
-          onClick={onAdd}
-          className="w-8 h-8 rounded-full bg-brand-pink text-white flex items-center justify-center hover:bg-brand-pink-dark transition-colors shadow-lg shadow-brand-pink/20"
-        >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-          </svg>
-        </button>
       </div>
+      {!isUnavailable && (
+        <div className="flex items-center gap-2 shrink-0">
+          {quantity > 0 && (
+            <>
+              <button
+                onClick={onRemove}
+                className="w-8 h-8 rounded-full border border-white/20 text-white flex items-center justify-center hover:border-brand-pink hover:text-brand-pink transition-colors"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+                </svg>
+              </button>
+              <span className="text-white font-bold text-sm w-4 text-center tabular-nums">{quantity}</span>
+            </>
+          )}
+          <button
+            onClick={onAdd}
+            className="w-8 h-8 rounded-full bg-brand-pink text-white flex items-center justify-center hover:bg-brand-pink-dark transition-colors shadow-lg shadow-brand-pink/20"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

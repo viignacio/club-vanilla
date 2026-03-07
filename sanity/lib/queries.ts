@@ -80,6 +80,7 @@ const menuItemFields = `
   description { ${localizedStringFields} },
   price,
   taxIncluded,
+  unavailable,
   priceDisplay,
   image { ..., asset-> }
 `;
@@ -168,17 +169,18 @@ export const pageQuery = groq`
   }
 `;
 
-// Fetches all menu category documents with orderable items (price > 0).
+// Fetches all menu category documents with orderable items (price > 0), excluding hidden categories.
 export const orderMenuQuery = groq`
-  *[_type == "menu"] | order(_createdAt asc) {
+  *[_type == "menu" && hideFromOrderPage != true] | order(_createdAt asc) {
     "_key": _id,
     name { en, ja },
-    "items": items[defined(price) && price > 0] {
+    "items": items[(defined(price) && price > 0) || unavailable == true] {
       _key,
       name { en, ja },
       description { en, ja },
       price,
       taxIncluded,
+      unavailable,
       "imageUrl": image.asset->url
     }
   }

@@ -83,6 +83,7 @@ export interface MenuItem {
   description?: LocalizedString;
   price?: number;
   taxIncluded?: boolean;
+  unavailable?: boolean;
   priceDisplay?: string;
   image?: SanityImage;
 }

@@ -14,6 +14,8 @@ interface MenuSectionProps {
 function MenuItemCard({ item, lang, style }: { item: MenuItem; lang: Lang; style: "grid" | "list" }) {
   const name = getLocalized(item.name, lang);
   const description = getLocalized(item.description, lang);
+  const isUnavailable = item.unavailable === true;
+  const unavailableLabel = lang === "ja" ? "品切れ" : "Unavailable";
   const basePrice = item.priceDisplay ?? (item.price != null ? `¥${item.price.toLocaleString()}` : null);
   const taxLabel = item.taxIncluded ? (lang === "ja" ? "（税込）" : " (Incl. Tax)") : "";
   const price = basePrice ? `${basePrice}${taxLabel}` : null;
@@ -21,14 +23,14 @@ function MenuItemCard({ item, lang, style }: { item: MenuItem; lang: Lang; style
 
   if (style === "grid") {
     return (
-      <div className="bg-dark-800 rounded-xl overflow-hidden border border-brand-purple/10 hover:border-brand-pink/30 transition-colors group">
+      <div className={`bg-dark-800 rounded-xl overflow-hidden border border-brand-purple/10 transition-colors group ${isUnavailable ? "opacity-50" : "hover:border-brand-pink/30"}`}>
         {imageUrl && (
           <div className="relative h-40 overflow-hidden">
             <Image
               src={imageUrl}
               alt={name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className={`object-cover ${isUnavailable ? "" : "group-hover:scale-105 transition-transform duration-500"}`}
               sizes="(max-width: 768px) 50vw, 25vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-dark-900/80 to-transparent" />
@@ -40,9 +42,11 @@ function MenuItemCard({ item, lang, style }: { item: MenuItem; lang: Lang; style
               <p className="font-semibold text-white text-sm">{name}</p>
               {description && <p className="text-white/50 text-xs mt-1">{description}</p>}
             </div>
-            {price && (
+            {isUnavailable ? (
+              <span className="text-white/40 font-medium text-sm whitespace-nowrap">{unavailableLabel}</span>
+            ) : price ? (
               <span className="text-brand-pink font-bold text-sm whitespace-nowrap">{price}</span>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -50,7 +54,7 @@ function MenuItemCard({ item, lang, style }: { item: MenuItem; lang: Lang; style
   }
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-brand-purple/10 last:border-0 hover:bg-dark-700/30 px-2 rounded transition-colors">
+    <div className={`flex items-center justify-between py-3 border-b border-brand-purple/10 last:border-0 px-2 rounded transition-colors ${isUnavailable ? "opacity-50" : "hover:bg-dark-700/30"}`}>
       <div className="flex items-center gap-3">
         {imageUrl && (
           <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
@@ -62,9 +66,11 @@ function MenuItemCard({ item, lang, style }: { item: MenuItem; lang: Lang; style
           {description && <p className="text-white/50 text-xs">{description}</p>}
         </div>
       </div>
-      {price && (
+      {isUnavailable ? (
+        <span className="text-white/40 font-medium text-sm ml-4 whitespace-nowrap">{unavailableLabel}</span>
+      ) : price ? (
         <span className="text-brand-pink font-bold text-sm ml-4 whitespace-nowrap">{price}</span>
-      )}
+      ) : null}
     </div>
   );
 }

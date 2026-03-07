@@ -8,6 +8,13 @@ const menuItemFields = [
     validation: (Rule) => Rule.required(),
   }),
   defineField({
+    name: "unavailable",
+    title: "Unavailable",
+    type: "boolean",
+    description: "When enabled, this item is shown greyed out on the order page with an 'Unavailable' label instead of its price.",
+    initialValue: false,
+  }),
+  defineField({
     name: "description",
     title: "Description (optional)",
     type: "localizedString",
@@ -39,9 +46,13 @@ const menuItemFields = [
 ];
 
 const menuItemPreview = {
-  select: { title: "name.en", titleJa: "name.ja", subtitle: "price" },
-  prepare({ title, titleJa, subtitle }: { title?: string; titleJa?: string; subtitle?: number }) {
-    return { title: title || titleJa, subtitle: subtitle ? `¥${subtitle.toLocaleString()}` : "" };
+  select: { title: "name.en", titleJa: "name.ja", subtitle: "price", unavailable: "unavailable" },
+  prepare({ title, titleJa, subtitle, unavailable }: { title?: string; titleJa?: string; subtitle?: number; unavailable?: boolean }) {
+    const priceLabel = subtitle ? `¥${subtitle.toLocaleString()}` : "";
+    return {
+      title: title || titleJa,
+      subtitle: unavailable ? "⚠️ Unavailable" : priceLabel,
+    };
   },
 };
 
@@ -56,6 +67,13 @@ export const menu = defineType({
       type: "localizedString",
       description: "Displayed as the category heading on the storefront.",
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "hideFromOrderPage",
+      title: "Hide from Order Page",
+      type: "boolean",
+      description: "When enabled, this entire category will not appear on the order page.",
+      initialValue: false,
     }),
     defineField({
       name: "items",
