@@ -314,32 +314,32 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
 
           {/* Stat cards */}
           <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
-            <div className={`rounded-2xl border p-4 sm:p-5 transition-all ${
+            <div className={`rounded-2xl border p-4 sm:p-5 transition-all overflow-hidden min-w-0 ${
               pendingCount > 0
                 ? "border-brand-pink/30 bg-gradient-to-br from-brand-pink/10 to-brand-pink/3"
                 : "border-white/8 bg-white/[0.03]"
             }`}>
               <div className="flex items-center gap-2 mb-3">
                 {pendingCount > 0 && <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse shrink-0" />}
-                <p className="text-white/30 text-xs font-medium">{t.pending}</p>
+                <p className="text-white/30 text-xs font-medium truncate">{t.pending}</p>
               </div>
-              <p className={`text-3xl font-bold tabular-nums leading-none ${
+              <p className={`text-2xl sm:text-3xl font-bold tabular-nums leading-none ${
                 pendingCount > 0 ? "text-brand-pink" : "text-white/25"
               }`}>{pendingCount}</p>
             </div>
 
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4 sm:p-5">
+            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4 sm:p-5 overflow-hidden min-w-0">
               <div className="mb-3">
-                <p className="text-white/30 text-xs font-medium">{t.completed}</p>
+                <p className="text-white/30 text-xs font-medium truncate">{t.completed}</p>
               </div>
-              <p className="text-3xl font-bold tabular-nums leading-none text-white">{doneCount}</p>
+              <p className="text-2xl sm:text-3xl font-bold tabular-nums leading-none text-white">{doneCount}</p>
             </div>
 
-            <div className="rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-purple/8 to-transparent p-4 sm:p-5">
+            <div className="rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-purple/8 to-transparent p-4 sm:p-5 overflow-hidden min-w-0">
               <div className="mb-3">
-                <p className="text-white/30 text-xs font-medium">{t.revenue}</p>
+                <p className="text-white/30 text-xs font-medium truncate">{t.revenue}</p>
               </div>
-              <p className="text-2xl sm:text-3xl font-bold tabular-nums leading-none text-brand-purple-light">
+              <p className="text-base sm:text-2xl lg:text-3xl font-bold tabular-nums leading-none text-brand-purple-light">
                 ¥{totalRevenue.toLocaleString()}
               </p>
             </div>
