@@ -34,8 +34,7 @@ export const adminDict = {
     noPendingOrders: "No pending orders",
     noOrdersMatchFilter: "No orders match the filter",
     ordersWillAppear: "Orders will appear here as customers place them",
-    hideCompleted: "Hide completed orders",
-    showCompleted: (count: number) => `Show completed orders (${count})`,
+    showCompleted: "Show completed",
     total: "Total",
     timeAgo: (diff: number) => {
       if (diff < 60) return `${diff}s ago`;
@@ -58,7 +57,7 @@ export const adminDict = {
     deleteConfirm: "Delete this table? All associated orders will also be deleted.",
     noTablesYet: "No tables yet",
     addFirstTable: "Add your first table above to get started",
-    qrCode: "QR Code",
+    qrCode: "View QR Code",
   },
   ja: {
     // Common
@@ -93,8 +92,7 @@ export const adminDict = {
     noPendingOrders: "未対応の注文はありません",
     noOrdersMatchFilter: "フィルターに一致する注文がありません",
     ordersWillAppear: "お客様が注文するとここに表示されます",
-    hideCompleted: "完了した注文を非表示",
-    showCompleted: (count: number) => `完了した注文を表示 (${count})`,
+    showCompleted: "完了を表示",
     total: "合計",
     timeAgo: (diff: number) => {
       if (diff < 60) return `${diff}秒前`;
@@ -117,6 +115,6 @@ export const adminDict = {
     deleteConfirm: "このテーブルを削除しますか？関連するすべての注文も削除されます。",
     noTablesYet: "テーブルがありません",
     addFirstTable: "上のフォームからテーブルを追加してください",
-    qrCode: "QRコード",
+    qrCode: "QRコードを表示",
   },
 };
