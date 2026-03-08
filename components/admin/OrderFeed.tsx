@@ -7,10 +7,11 @@ import type { Order, OrderItem } from "@/lib/supabase/types";
 import type { Table } from "@/lib/supabase/types";
 import { adminDict } from "@/lib/i18n/adminDict";
 import { useAdminLang } from "@/hooks/useAdminLang";
+import { QRModal, type QRTable } from "@/components/admin/QRModal";
 
 interface OrderFeedProps {
   initialOrders: Order[];
-  tables: Pick<Table, "id" | "name">[];
+  tables: Pick<Table, "id" | "name" | "secret_key">[];
   logoUrl?: string;
 }
 
@@ -101,6 +102,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [hasNew, setHasNew] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [qrTable, setQrTable] = useState<QRTable | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchOrders = useCallback(async () => {
@@ -298,18 +300,46 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
 
         <div className="flex-1 px-5 sm:px-8 py-6 sm:py-8">
           {/* Page header */}
-          <div className="flex items-start justify-between gap-4 mb-7">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-7">
             <div>
               <h1 className="text-white font-bold text-xl leading-tight">{activeTableName}</h1>
               <p className="text-white/30 text-sm mt-0.5">{t.liveOrderFeed}</p>
             </div>
-            {hasNew && (
-              <button onClick={() => setHasNew(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-pink/15 border border-brand-pink/30 text-brand-pink text-xs font-semibold animate-pulse shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-pink" />
-                {t.newOrders}
+            <div className="flex flex-row items-center gap-2 sm:shrink-0">
+              <button
+                onClick={() => setShowDone((v) => !v)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
+                  showDone
+                    ? "bg-white/8 border-white/12 text-white/70"
+                    : "bg-white/5 border-white/8 text-white/40 hover:bg-white/8 hover:text-white/60"
+                }`}>
+                <div className={`relative w-7 h-4 rounded-full transition-colors shrink-0 ${showDone ? "bg-brand-purple/60" : "bg-white/10"}`}>
+                  <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${showDone ? "translate-x-3.5" : "translate-x-0.5"}`} />
+                </div>
+                {t.showCompleted}
               </button>
-            )}
+              {activeTableId !== "all" && (() => {
+                const table = tables.find((tb) => tb.id === activeTableId);
+                return table ? (
+                  <button
+                    onClick={() => setQrTable(table)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-white/60 text-xs font-semibold hover:bg-brand-pink/15 hover:text-brand-pink hover:border-brand-pink/30 transition-all">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                    </svg>
+                    {t.qrCode}
+                  </button>
+                ) : null;
+              })()}
+              {hasNew && (
+                <button onClick={() => setHasNew(false)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-pink/15 border border-brand-pink/30 text-brand-pink text-xs font-semibold animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-pink" />
+                  {t.newOrders}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Stat cards */}
@@ -371,14 +401,9 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
           )}
         </div>
 
-        {/* Show done footer */}
-        <div className="px-5 sm:px-8 pb-8 pt-2 border-t border-white/5">
-          <button onClick={() => setShowDone((v) => !v)}
-            className="w-full py-3 rounded-full bg-white/4 border border-white/8 text-white/35 text-xs font-semibold hover:bg-white/8 hover:text-white/50 transition-all">
-            {showDone ? t.hideCompleted : t.showCompleted(doneCount)}
-          </button>
-        </div>
       </div>
+
+      {qrTable && <QRModal table={qrTable} onClose={() => setQrTable(null)} t={t} />}
     </div>
   );
 }

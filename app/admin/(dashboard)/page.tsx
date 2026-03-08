@@ -17,13 +17,13 @@ export default async function AdminDashboardPage() {
       .limit(200),
     supabase
       .from("tables")
-      .select("id, name")
+      .select("id, name, secret_key")
       .order("created_at", { ascending: true }),
     client.fetch<string | null>(adminLogoQuery).catch(() => null),
   ]);
 
   const orders = (ordersResult.data ?? []) as Order[];
-  const tables = (tablesResult.data ?? []) as Pick<Table, "id" | "name">[];
+  const tables = (tablesResult.data ?? []) as Pick<Table, "id" | "name" | "secret_key">[];
 
   return <OrderFeed initialOrders={orders} tables={tables} logoUrl={logoUrl ?? undefined} />;
 }
