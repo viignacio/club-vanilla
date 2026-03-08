@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Order, OrderItem } from "@/lib/supabase/types";
 import type { Table } from "@/lib/supabase/types";
+import { adminDict } from "@/lib/i18n/adminDict";
+import { useAdminLang } from "@/hooks/useAdminLang";
 
 interface OrderFeedProps {
   initialOrders: Order[];
@@ -12,19 +14,14 @@ interface OrderFeedProps {
   logoUrl?: string;
 }
 
-function timeAgo(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
-
-function OrderCard({ order, onMarkDone, isUpdating }: {
-  order: Order; onMarkDone: (id: string) => void; isUpdating: boolean;
+function OrderCard({ order, onMarkDone, isUpdating, t }: {
+  order: Order;
+  onMarkDone: (id: string) => void;
+  isUpdating: boolean;
+  t: typeof adminDict["en"];
 }) {
   const isPending = order.status === "pending";
-  const tableName = order.table?.name ?? "Unknown";
+  const tableName = order.table?.name ?? t.unknown;
   const items: OrderItem[] = order.items ?? [];
 
   return (
@@ -40,18 +37,20 @@ function OrderCard({ order, onMarkDone, isUpdating }: {
           {isPending ? (
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse" />
-              <span className="text-brand-pink text-xs font-bold uppercase tracking-widest">Pending</span>
+              <span className="text-brand-pink text-xs font-bold uppercase tracking-widest">{t.pending}</span>
             </span>
           ) : (
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-white/20" />
-              <span className="text-white/25 text-xs font-semibold uppercase tracking-widest">Done</span>
+              <span className="text-white/25 text-xs font-semibold uppercase tracking-widest">{t.done}</span>
             </span>
           )}
           <span className="text-white/15 text-xs">·</span>
           <span className="text-white font-semibold text-sm">{tableName}</span>
         </div>
-        <span className="text-white/25 text-xs tabular-nums">{timeAgo(order.created_at)}</span>
+        <span className="text-white/25 text-xs tabular-nums">
+          {t.timeAgo(Math.floor((Date.now() - new Date(order.created_at).getTime()) / 1000))}
+        </span>
       </div>
 
       <div className="px-4 py-3 flex flex-col gap-1.5">
@@ -75,7 +74,7 @@ function OrderCard({ order, onMarkDone, isUpdating }: {
 
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-white/5">
         <div>
-          <p className="text-white/30 text-xs mb-0.5">Total</p>
+          <p className="text-white/30 text-xs mb-0.5">{t.total}</p>
           <p className="text-white font-bold text-lg tabular-nums">¥{order.total.toLocaleString()}</p>
         </div>
         {isPending && (
@@ -84,7 +83,7 @@ function OrderCard({ order, onMarkDone, isUpdating }: {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-12.75" />
             </svg>
-            Mark Done
+            {t.markDone}
           </button>
         )}
       </div>
@@ -93,6 +92,9 @@ function OrderCard({ order, onMarkDone, isUpdating }: {
 }
 
 export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedProps) {
+  const { lang, setLang } = useAdminLang();
+  const t = adminDict[lang];
+
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTableId, setActiveTableId] = useState<string>("all");
   const [showDone, setShowDone] = useState(false);
@@ -157,8 +159,8 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
     .reduce((sum, o) => sum + o.total, 0);
 
   const activeTableName = activeTableId === "all"
-    ? "All Tables"
-    : (tables.find((t) => t.id === activeTableId)?.name ?? "Unknown");
+    ? t.allTables
+    : (tables.find((t) => t.id === activeTableId)?.name ?? t.unknown);
 
   function navItem(active: boolean) {
     return `flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm font-medium transition-all text-left border ${
@@ -179,13 +181,13 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
             Club Vanilla
           </p>
         )}
-        <p className="text-white/30 text-xs mt-0.5">Admin</p>
+        <p className="text-white/30 text-xs mt-0.5">{t.brandSubtitle}</p>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col gap-6">
         <div>
-          <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-2 mb-2">Orders</p>
+          <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-2 mb-2">{t.orders}</p>
           <div className="flex flex-col gap-0.5">
             <button
               onClick={() => { setActiveTableId("all"); setMobileOpen(false); }}
@@ -194,7 +196,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
               </svg>
-              All Tables
+              {t.allTables}
             </button>
             {tables.map((table) => (
               <button
@@ -212,27 +214,42 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
         </div>
 
         <div>
-          <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-2 mb-2">Management</p>
+          <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-2 mb-2">{t.management}</p>
           <div className="flex flex-col gap-0.5">
             <Link href="/admin/tables"
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all">
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
               </svg>
-              Table Management
+              {t.tableManagement}
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Logout */}
-      <div className="px-3 py-4 border-t border-white/5 shrink-0">
+      {/* Lang toggle + Logout */}
+      <div className="px-3 py-4 border-t border-white/5 shrink-0 flex flex-col gap-1">
+        <div className="flex gap-1 px-1 mb-1">
+          {(["en", "ja"] as const).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                lang === l
+                  ? "bg-white/10 text-white"
+                  : "text-white/30 hover:text-white/60"
+              }`}
+            >
+              {l === "en" ? "EN" : "JP"}
+            </button>
+          ))}
+        </div>
         <button onClick={handleLogout}
           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm font-medium text-white/40 hover:text-white hover:bg-white/5 transition-all">
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
           </svg>
-          Logout
+          {t.logout}
         </button>
       </div>
     </div>
@@ -269,7 +286,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
             <p className="font-bold bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent leading-tight">
               Club Vanilla
             </p>
-            <p className="text-white/30 text-xs">Order Management</p>
+            <p className="text-white/30 text-xs">{t.orderManagement}</p>
           </div>
           <button onClick={() => setMobileOpen(true)}
             className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-white/60 hover:text-white transition-all">
@@ -284,13 +301,13 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
           <div className="flex items-start justify-between gap-4 mb-7">
             <div>
               <h1 className="text-white font-bold text-xl leading-tight">{activeTableName}</h1>
-              <p className="text-white/30 text-sm mt-0.5">Live order feed · auto-refreshes every 10s</p>
+              <p className="text-white/30 text-sm mt-0.5">{t.liveOrderFeed}</p>
             </div>
             {hasNew && (
               <button onClick={() => setHasNew(false)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-pink/15 border border-brand-pink/30 text-brand-pink text-xs font-semibold animate-pulse shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-pink" />
-                New orders
+                {t.newOrders}
               </button>
             )}
           </div>
@@ -304,7 +321,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
             }`}>
               <div className="flex items-center gap-2 mb-3">
                 {pendingCount > 0 && <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse shrink-0" />}
-                <p className="text-white/30 text-xs font-medium">Pending</p>
+                <p className="text-white/30 text-xs font-medium">{t.pending}</p>
               </div>
               <p className={`text-3xl font-bold tabular-nums leading-none ${
                 pendingCount > 0 ? "text-brand-pink" : "text-white/25"
@@ -313,14 +330,14 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
 
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4 sm:p-5">
               <div className="mb-3">
-                <p className="text-white/30 text-xs font-medium">Completed</p>
+                <p className="text-white/30 text-xs font-medium">{t.completed}</p>
               </div>
               <p className="text-3xl font-bold tabular-nums leading-none text-white">{doneCount}</p>
             </div>
 
             <div className="rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-purple/8 to-transparent p-4 sm:p-5">
               <div className="mb-3">
-                <p className="text-white/30 text-xs font-medium">Revenue</p>
+                <p className="text-white/30 text-xs font-medium">{t.revenue}</p>
               </div>
               <p className="text-2xl sm:text-3xl font-bold tabular-nums leading-none text-brand-purple-light">
                 ¥{totalRevenue.toLocaleString()}
@@ -338,16 +355,16 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
               </div>
               <div>
                 <p className="text-white/30 font-medium">
-                  {pendingCount === 0 ? "No pending orders" : "No orders match the filter"}
+                  {pendingCount === 0 ? t.noPendingOrders : t.noOrdersMatchFilter}
                 </p>
-                <p className="text-white/15 text-sm mt-1">Orders will appear here as customers place them</p>
+                <p className="text-white/15 text-sm mt-1">{t.ordersWillAppear}</p>
               </div>
             </div>
           ) : (
             <div className="columns-1 sm:columns-2 xl:columns-3 gap-4 space-y-4">
               {filtered.map((order) => (
                 <div key={order.id} className="break-inside-avoid">
-                  <OrderCard order={order} onMarkDone={handleMarkDone} isUpdating={updatingId === order.id} />
+                  <OrderCard order={order} onMarkDone={handleMarkDone} isUpdating={updatingId === order.id} t={t} />
                 </div>
               ))}
             </div>
@@ -358,7 +375,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
         <div className="px-5 sm:px-8 pb-8 pt-2 border-t border-white/5">
           <button onClick={() => setShowDone((v) => !v)}
             className="w-full py-3 rounded-full bg-white/4 border border-white/8 text-white/35 text-xs font-semibold hover:bg-white/8 hover:text-white/50 transition-all">
-            {showDone ? "Hide completed orders" : `Show completed orders (${doneCount})`}
+            {showDone ? t.hideCompleted : t.showCompleted(doneCount)}
           </button>
         </div>
       </div>
