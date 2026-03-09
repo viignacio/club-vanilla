@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { verifyAdminCookie } from "@/app/api/admin-auth/route";
 
 export const metadata = {
   robots: "noindex, nofollow",
@@ -11,9 +12,9 @@ export default async function AdminDashboardLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const adminCookie = cookieStore.get("cv_admin")?.value;
+  const token = cookieStore.get("cv_admin")?.value;
 
-  if (!adminCookie || adminCookie !== process.env.ADMIN_PASSWORD) {
+  if (!(await verifyAdminCookie(token))) {
     redirect("/admin/login");
   }
 
