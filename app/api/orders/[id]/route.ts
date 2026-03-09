@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import type { OrderStatus } from "@/lib/supabase/types";
+import { verifyAdminCookie } from "@/app/api/admin-auth/route";
 
 // PATCH /api/orders/[id] — update order status (admin only)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminSession = request.cookies.get("cv_admin")?.value;
-  if (adminSession !== process.env.ADMIN_PASSWORD) {
+  if (!(await verifyAdminCookie(request.cookies.get("cv_admin")?.value))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
