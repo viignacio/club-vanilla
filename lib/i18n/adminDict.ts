@@ -61,6 +61,10 @@ export const adminDict = {
     addFirstTable: "Add your first table above to get started",
     qrCode: "View QR Code",
     refresh: "Refresh",
+    rename: "Rename",
+    saveName: "Save",
+    failedToRename: "Failed to rename table.",
+    duplicateNameWarning: "Another table already has this name",
   },
   ja: {
     // Common
@@ -122,5 +126,9 @@ export const adminDict = {
     addFirstTable: "上のフォームからテーブルを追加してください",
     qrCode: "QRコードを表示",
     refresh: "更新",
+    rename: "名前を変更",
+    saveName: "保存",
+    failedToRename: "テーブル名の変更に失敗しました。",
+    duplicateNameWarning: "同じ名前のテーブルが既に存在します",
   },
 };

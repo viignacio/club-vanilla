@@ -20,6 +20,10 @@ export default function TableManager({ initialTables, logoUrl }: { initialTables
   const [qrTable, setQrTable] = useState<Table | null>(null);
   const [error, setError] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameError, setRenameError] = useState("");
 
   async function handleAdd() {
     if (!newName.trim()) return;
@@ -46,6 +50,29 @@ export default function TableManager({ initialTables, logoUrl }: { initialTables
       const res = await fetch(`/api/admin/tables/${id}`, { method: "DELETE" });
       if (res.ok) setTables((prev) => prev.filter((t) => t.id !== id));
     } finally { setDeletingId(null); }
+  }
+
+  async function handleRename(id: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setRenamingId(id);
+    setRenameError("");
+    try {
+      const res = await fetch(`/api/admin/tables/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      if (res.ok) {
+        const { table } = await res.json();
+        setTables((prev) => prev.map((t) => (t.id === id ? table : t)));
+        setEditingId(null);
+      } else {
+        setRenameError(t.failedToRename);
+      }
+    } finally {
+      setRenamingId(null);
+    }
   }
 
   async function handleLogout() {
@@ -209,36 +236,94 @@ export default function TableManager({ initialTables, logoUrl }: { initialTables
                 <p className="text-white/10 text-xs mt-1">{t.addFirstTable}</p>
               </div>
             ) : (
-              tables.map((table) => (
-                <div key={table.id}
-                  className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-white/[0.03] border border-white/6 hover:border-white/10 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-pink/15 to-brand-purple/15 border border-white/8 flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5 text-brand-pink/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold">{table.name}</p>
-                    <p className="text-white/25 text-xs mt-0.5 font-mono truncate">{table.id.slice(0, 12)}…</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button onClick={() => setQrTable(table)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-white/60 text-xs font-semibold hover:bg-brand-pink/15 hover:text-brand-pink hover:border-brand-pink/30 transition-all">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+              tables.map((table) => {
+                const isEditing = editingId === table.id;
+                const normalizedEditingName = editingName.trim().toLowerCase();
+                const hasDuplicate = isEditing &&
+                  tables.some((t) => t.id !== table.id && t.name.trim().toLowerCase() === normalizedEditingName);
+                return (
+                  <div key={table.id}
+                    className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-white/[0.03] border border-white/6 hover:border-white/10 transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-pink/15 to-brand-purple/15 border border-white/8 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-brand-pink/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                       </svg>
-                      {t.qrCode}
-                    </button>
-                    <button onClick={() => setConfirmTableId(table.id)} disabled={deletingId === table.id}
-                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all disabled:opacity-40">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </svg>
-                    </button>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {isEditing ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleRename(table.id, editingName);
+                              if (e.key === "Escape") setEditingId(null);
+                            }}
+                            autoFocus
+                            className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-brand-pink/50 transition-colors"
+                          />
+                          {hasDuplicate && (
+                            <p className="text-amber-400/80 text-xs mt-1">{t.duplicateNameWarning}</p>
+                          )}
+                          {renameError && (
+                            <p className="text-red-400 text-xs mt-1">{renameError}</p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-white font-semibold">{table.name}</p>
+                          <p className="text-white/25 text-xs mt-0.5 font-mono truncate">{table.id.slice(0, 12)}…</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isEditing ? (
+                        <>
+                          <button onClick={() => handleRename(table.id, editingName)} disabled={!editingName.trim() || renamingId === table.id}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all disabled:opacity-30"
+                            title={t.saveName}>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          </button>
+                          <button onClick={() => setEditingId(null)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
+                            title={t.cancel}>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => setQrTable(table)}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-white/60 text-xs font-semibold hover:bg-brand-pink/15 hover:text-brand-pink hover:border-brand-pink/30 transition-all">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                            </svg>
+                            {t.qrCode}
+                          </button>
+                          <button onClick={() => { setEditingId(table.id); setEditingName(table.name); setRenameError(""); }}
+                            className="w-8 h-8 rounded-xl flex items-center justify-center text-white/20 hover:text-white/60 hover:bg-white/8 transition-all"
+                            title={t.rename}>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                            </svg>
+                          </button>
+                          <button onClick={() => setConfirmTableId(table.id)} disabled={deletingId === table.id}
+                            className="w-8 h-8 rounded-xl flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all disabled:opacity-40">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
