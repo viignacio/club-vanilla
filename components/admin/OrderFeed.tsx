@@ -100,7 +100,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
   const [activeTableId, setActiveTableId] = useState<string>("all");
   const [showDone, setShowDone] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [hasNew, setHasNew] = useState(false);
+  const [newTableIds, setNewTableIds] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [qrTable, setQrTable] = useState<QRTable | null>(null);
@@ -113,9 +113,20 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
       const data = await res.json();
       const fetched: Order[] = data.orders ?? [];
       setOrders((prev) => {
-        const prevPending = prev.filter((o) => o.status === "pending").length;
-        const nextPending = fetched.filter((o) => o.status === "pending").length;
-        if (nextPending > prevPending) setHasNew(true);
+        const prevByTable = new Map<string, number>();
+        const nextByTable = new Map<string, number>();
+        prev.filter((o) => o.status === "pending").forEach((o) => prevByTable.set(o.table_id, (prevByTable.get(o.table_id) ?? 0) + 1));
+        fetched.filter((o) => o.status === "pending").forEach((o) => nextByTable.set(o.table_id, (nextByTable.get(o.table_id) ?? 0) + 1));
+        setNewTableIds((prev) => {
+          const next = new Set(prev);
+          for (const [tableId, count] of nextByTable) {
+            if (count > (prevByTable.get(tableId) ?? 0)) next.add(tableId);
+          }
+          for (const tableId of Array.from(next)) {
+            if (!nextByTable.has(tableId)) next.delete(tableId);
+          }
+          return next;
+        });
         return fetched;
       });
     } catch { /* ignore */ }
@@ -164,7 +175,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
   ).length;
 
   const totalRevenue = orders
-    .filter((o) => activeTableId === "all" || o.table_id === activeTableId)
+    .filter((o) => (activeTableId === "all" || o.table_id === activeTableId) && o.status === "done")
     .reduce((sum, o) => sum + o.total, 0);
 
   const activeTableName = activeTableId === "all"
@@ -309,7 +320,21 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
           {/* Page header */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-7">
             <div>
-              <h1 className="text-white font-bold text-xl leading-tight">{activeTableName}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-white font-bold text-xl leading-tight">{activeTableName}</h1>
+                {(activeTableId === "all" ? newTableIds.size > 0 : newTableIds.has(activeTableId)) && (
+                  <button
+                    onClick={() => setNewTableIds((prev) => {
+                      const next = new Set(prev);
+                      if (activeTableId === "all") next.clear();
+                      else next.delete(activeTableId);
+                      return next;
+                    })}
+                    className="flex items-center justify-center w-5 h-5 rounded-full border border-brand-pink/40 bg-brand-pink/10">
+                    <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse" />
+                  </button>
+                )}
+              </div>
               <p className="text-white/30 text-sm mt-0.5">{t.liveOrderFeed}</p>
             </div>
             <div className="flex flex-row items-center gap-2 sm:shrink-0">
@@ -348,13 +373,6 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
                   </button>
                 ) : null;
               })()}
-              {hasNew && (
-                <button onClick={() => setHasNew(false)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-pink/15 border border-brand-pink/30 text-brand-pink text-xs font-semibold animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-pink" />
-                  {t.newOrders}
-                </button>
-              )}
             </div>
           </div>
 

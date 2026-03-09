@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
-
-function isAdmin(request: NextRequest) {
-  return request.cookies.get("cv_admin")?.value === process.env.ADMIN_PASSWORD;
-}
+import { verifyAdminCookie } from "@/app/api/admin-auth/route";
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!isAdmin(request)) {
+  if (!(await verifyAdminCookie(request.cookies.get("cv_admin")?.value))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -28,7 +25,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!isAdmin(request)) {
+  if (!(await verifyAdminCookie(request.cookies.get("cv_admin")?.value))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
