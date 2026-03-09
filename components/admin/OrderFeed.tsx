@@ -101,6 +101,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
   const [showDone, setShowDone] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [hasNew, setHasNew] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [qrTable, setQrTable] = useState<QRTable | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -124,6 +125,12 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
     pollRef.current = setInterval(fetchOrders, 10000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [fetchOrders]);
+
+  async function handleManualRefresh() {
+    setIsRefreshing(true);
+    await fetchOrders();
+    setIsRefreshing(false);
+  }
 
   async function handleMarkDone(id: string) {
     setUpdatingId(id);
@@ -306,6 +313,15 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
               <p className="text-white/30 text-sm mt-0.5">{t.liveOrderFeed}</p>
             </div>
             <div className="flex flex-row items-center gap-2 sm:shrink-0">
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-white/60 text-xs font-semibold hover:bg-white/8 hover:text-white/80 transition-all disabled:opacity-40">
+                <svg className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                {t.refresh}
+              </button>
               <button
                 onClick={() => setShowDone((v) => !v)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${

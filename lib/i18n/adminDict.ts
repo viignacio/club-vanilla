@@ -58,6 +58,7 @@ export const adminDict = {
     noTablesYet: "No tables yet",
     addFirstTable: "Add your first table above to get started",
     qrCode: "View QR Code",
+    refresh: "Refresh",
   },
   ja: {
     // Common
@@ -116,5 +117,6 @@ export const adminDict = {
     noTablesYet: "テーブルがありません",
     addFirstTable: "上のフォームからテーブルを追加してください",
     qrCode: "QRコードを表示",
+    refresh: "更新",
   },
 };
