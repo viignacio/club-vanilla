@@ -38,8 +38,8 @@ export function QRModal({ table, onClose, t }: { table: QRTable; onClose: () => 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-dark-800 rounded-3xl border border-white/10 w-full max-w-sm p-6 flex flex-col items-center gap-5 shadow-2xl shadow-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-dark-800 rounded-3xl border border-white/10 w-full max-w-sm p-6 flex flex-col items-center gap-5 shadow-2xl shadow-black/50" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between w-full">
           <div>
             <p className="text-white font-bold">{table.name}</p>
