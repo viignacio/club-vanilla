@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { verifySession, ORDER_SESSION_COOKIE } from "@/lib/supabase/session";
+import { verifyAdminCookie } from "@/app/api/admin-auth/route";
 import type { CartItem } from "@/lib/supabase/types";
 
 // POST /api/orders — place a new order (requires valid order session cookie)
@@ -73,8 +74,8 @@ export async function POST(request: NextRequest) {
 
 // GET /api/orders — list orders (admin only, verified via admin session cookie)
 export async function GET(request: NextRequest) {
-  const adminSession = request.cookies.get("cv_admin")?.value;
-  if (adminSession !== process.env.ADMIN_PASSWORD) {
+  const adminToken = request.cookies.get("cv_admin")?.value;
+  if (!(await verifyAdminCookie(adminToken))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
