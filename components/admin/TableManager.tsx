@@ -225,6 +225,9 @@ export default function TableManager({ initialTables, logoUrl }: { initialTables
                 {isAdding ? t.adding : t.add}
               </button>
             </div>
+            {newName.trim() && tables.some((tbl) => tbl.name.trim().toLowerCase() === newName.trim().toLowerCase()) && (
+              <p className="text-amber-400/80 text-xs mt-2">{t.duplicateNameWarning}</p>
+            )}
             {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
           </div>
 
