@@ -34,7 +34,11 @@ export const adminDict = {
     noPendingOrders: "No pending orders",
     noOrdersMatchFilter: "No orders match the filter",
     ordersWillAppear: "Orders will appear here as customers place them",
+    cancelled: "Cancelled",
+    cancelOrder: "Cancel Order",
+    cancelledOrders: "Cancelled",
     showCompleted: "Show completed",
+    showCancelled: "Show cancelled",
     total: "Total",
     timeAgo: (diff: number) => {
       if (diff < 60) return `${diff}s ago`;
@@ -99,7 +103,11 @@ export const adminDict = {
     noPendingOrders: "未対応の注文はありません",
     noOrdersMatchFilter: "フィルターに一致する注文がありません",
     ordersWillAppear: "お客様が注文するとここに表示されます",
+    cancelled: "キャンセル済み",
+    cancelOrder: "注文をキャンセル",
+    cancelledOrders: "キャンセル済み",
     showCompleted: "完了を表示",
+    showCancelled: "キャンセル済みを表示",
     total: "合計",
     timeAgo: (diff: number) => {
       if (diff < 60) return `${diff}秒前`;

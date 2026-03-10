@@ -16,7 +16,7 @@ export async function PATCH(
   const body = await request.json();
   const status: OrderStatus = body.status;
 
-  if (!["pending", "done"].includes(status)) {
+  if (!["pending", "done", "cancelled"].includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 

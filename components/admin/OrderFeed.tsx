@@ -15,13 +15,14 @@ interface OrderFeedProps {
   logoUrl?: string;
 }
 
-function OrderCard({ order, onMarkDone, isUpdating, t }: {
+function OrderCard({ order, onUpdate, isUpdating, t }: {
   order: Order;
-  onMarkDone: (id: string) => void;
+  onUpdate: (id: string, status: "done" | "cancelled") => void;
   isUpdating: boolean;
   t: typeof adminDict["en"];
 }) {
   const isPending = order.status === "pending";
+  const isCancelled = order.status === "cancelled";
   const tableName = order.table?.name ?? t.unknown;
   const items: OrderItem[] = order.items ?? [];
 
@@ -29,16 +30,23 @@ function OrderCard({ order, onMarkDone, isUpdating, t }: {
     <div className={`rounded-2xl border transition-all ${
       isPending
         ? "border-brand-pink/25 bg-gradient-to-b from-brand-pink/5 to-transparent"
+        : isCancelled
+        ? "border-red-400/15 bg-red-400/[0.03] opacity-60"
         : "border-white/5 bg-white/[0.015] opacity-50"
     }`}>
       <div className={`flex items-center justify-between gap-2 px-4 py-3 border-b ${
-        isPending ? "border-brand-pink/10" : "border-white/5"
+        isPending ? "border-brand-pink/10" : isCancelled ? "border-red-400/10" : "border-white/5"
       }`}>
         <div className="flex items-center gap-2">
           {isPending ? (
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse" />
               <span className="text-brand-pink text-xs font-bold uppercase tracking-widest">{t.pending}</span>
+            </span>
+          ) : isCancelled ? (
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-400/40" />
+              <span className="text-red-400/60 text-xs font-semibold uppercase tracking-widest">{t.cancelled}</span>
             </span>
           ) : (
             <span className="flex items-center gap-1.5">
@@ -79,13 +87,26 @@ function OrderCard({ order, onMarkDone, isUpdating, t }: {
           <p className="text-white font-bold text-lg tabular-nums">¥{order.total.toLocaleString()}</p>
         </div>
         {isPending && (
-          <button onClick={() => onMarkDone(order.id)} disabled={isUpdating}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 text-white/70 text-sm font-semibold hover:bg-brand-pink hover:text-white transition-all disabled:opacity-40 border border-white/10 hover:border-brand-pink">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-12.75" />
-            </svg>
-            {t.markDone}
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => onUpdate(order.id, "cancelled")} disabled={isUpdating}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 text-white/30 text-sm font-semibold hover:text-red-400 hover:bg-red-400/10 transition-all disabled:opacity-40 border border-white/10 hover:border-red-400/20">
+              {isUpdating ? (
+                <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              {t.cancel}
+            </button>
+            <button onClick={() => onUpdate(order.id, "done")} disabled={isUpdating}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 text-white/70 text-sm font-semibold hover:bg-brand-pink hover:text-white transition-all disabled:opacity-40 border border-white/10 hover:border-brand-pink">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-12.75" />
+              </svg>
+              {t.done}
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -99,6 +120,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTableId, setActiveTableId] = useState<string>("all");
   const [showDone, setShowDone] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [newTableIds, setNewTableIds] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -143,15 +165,15 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
     setIsRefreshing(false);
   }
 
-  async function handleMarkDone(id: string) {
+  async function handleUpdate(id: string, status: "done" | "cancelled") {
     setUpdatingId(id);
     try {
       const res = await fetch(`/api/orders/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "done" }),
+        body: JSON.stringify({ status }),
       });
-      if (res.ok) setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: "done" } : o));
+      if (res.ok) setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o));
     } finally { setUpdatingId(null); }
   }
 
@@ -162,8 +184,9 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
 
   const filtered = orders.filter((o) => {
     const tableMatch = activeTableId === "all" || o.table_id === activeTableId;
-    const statusMatch = showDone || o.status === "pending";
-    return tableMatch && statusMatch;
+    if (o.status === "cancelled") return tableMatch && showCancelled;
+    if (o.status === "done") return tableMatch && showDone;
+    return tableMatch;
   });
 
   const pendingCount = orders.filter((o) =>
@@ -172,6 +195,10 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
 
   const doneCount = orders.filter((o) =>
     (activeTableId === "all" || o.table_id === activeTableId) && o.status === "done"
+  ).length;
+
+  const cancelledCount = orders.filter((o) =>
+    (activeTableId === "all" || o.table_id === activeTableId) && o.status === "cancelled"
   ).length;
 
   const totalRevenue = orders
@@ -359,6 +386,18 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
                 </div>
                 {t.showCompleted}
               </button>
+              <button
+                onClick={() => setShowCancelled((v) => !v)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
+                  showCancelled
+                    ? "bg-red-400/10 border-red-400/20 text-red-400/80"
+                    : "bg-white/5 border-white/8 text-white/40 hover:bg-white/8 hover:text-white/60"
+                }`}>
+                <div className={`relative w-7 h-4 rounded-full transition-colors shrink-0 ${showCancelled ? "bg-red-400/40" : "bg-white/10"}`}>
+                  <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${showCancelled ? "translate-x-3.5" : "translate-x-0.5"}`} />
+                </div>
+                {t.showCancelled}
+              </button>
               {activeTableId !== "all" && (() => {
                 const table = tables.find((tb) => tb.id === activeTableId);
                 return table ? (
@@ -377,7 +416,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
           </div>
 
           {/* Stat cards */}
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
             <div className={`rounded-2xl border p-4 sm:p-5 transition-all overflow-hidden min-w-0 ${
               pendingCount > 0
                 ? "border-brand-pink/30 bg-gradient-to-br from-brand-pink/10 to-brand-pink/3"
@@ -397,6 +436,13 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
                 <p className="text-white/30 text-xs font-medium truncate">{t.completed}</p>
               </div>
               <p className="text-2xl sm:text-3xl font-bold tabular-nums leading-none text-white">{doneCount}</p>
+            </div>
+
+            <div className="rounded-2xl border border-red-400/15 bg-red-400/[0.03] p-4 sm:p-5 overflow-hidden min-w-0 transition-all">
+              <div className="mb-3">
+                <p className="text-white/30 text-xs font-medium truncate">{t.cancelledOrders}</p>
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold tabular-nums leading-none text-red-400/60">{cancelledCount}</p>
             </div>
 
             <div className="rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-purple/8 to-transparent p-4 sm:p-5 overflow-hidden min-w-0">
@@ -428,7 +474,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl }: OrderFeedP
             <div className="columns-1 sm:columns-2 xl:columns-3 gap-4 space-y-4">
               {filtered.map((order) => (
                 <div key={order.id} className="break-inside-avoid">
-                  <OrderCard order={order} onMarkDone={handleMarkDone} isUpdating={updatingId === order.id} t={t} />
+                  <OrderCard order={order} onUpdate={handleUpdate} isUpdating={updatingId === order.id} t={t} />
                 </div>
               ))}
             </div>
