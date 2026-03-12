@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { verifySession, ORDER_SESSION_COOKIE } from "@/lib/supabase/session";
 import { supabase } from "@/lib/supabase/client";
 import { client } from "@/sanity/lib/client";
-import { orderMenuQuery } from "@/sanity/lib/queries";
+import { orderMenuQuery, adminLogoQuery } from "@/sanity/lib/queries";
 import OrderEntry from "@/components/order/OrderEntry";
 import OrderUI from "@/components/order/OrderUI";
 import type { OrderMenuCategory } from "@/lib/types/order";
@@ -34,12 +34,13 @@ export default async function OrderPage({
   }
 
   // Valid session — fetch menu and show order UI
-  const [categories, tableRow] = await Promise.all([
+  const [categories, tableRow, logoUrl] = await Promise.all([
     client.fetch<OrderMenuCategory[]>(orderMenuQuery, {}, { next: { revalidate: 300 } }),
     supabase.from("tables").select("name").eq("id", session.tableId).single(),
+    client.fetch<string | null>(adminLogoQuery).catch(() => null),
   ]);
   const freshSession = tableRow.data?.name
     ? { ...session, tableName: tableRow.data.name }
     : session;
-  return <OrderUI session={freshSession} categories={categories} />;
+  return <OrderUI session={freshSession} categories={categories} logoUrl={logoUrl ?? undefined} />;
 }
