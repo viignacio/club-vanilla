@@ -40,6 +40,15 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface User {
+  id: string;
+  username: string;
+  password_hash: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Raw DB row types (no joined fields) — used for the typed Supabase client
 interface TableRow {
   id: string;
@@ -77,6 +86,11 @@ export interface Database {
         Row: OrderItem;
         Insert: Omit<OrderItem, "id">;
         Update: Partial<Omit<OrderItem, "id" | "order_id">>;
+      };
+      users: {
+        Row: User;
+        Insert: Omit<User, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<User, "id" | "created_at" | "updated_at">>;
       };
     };
   };

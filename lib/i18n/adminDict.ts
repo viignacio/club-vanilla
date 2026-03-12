@@ -69,6 +69,23 @@ export const adminDict = {
     saveName: "Save",
     failedToRename: "Failed to rename table.",
     duplicateNameWarning: "Another table already has this name",
+
+    // Settings
+    settings: "Settings",
+    userManagement: "User Management",
+    accountSettings: "Account Settings",
+    changeUsername: "Change Username",
+    changePassword: "Change Password",
+    newUsername: "New Username",
+    newPassword: "New Password",
+    confirmPassword: "Confirm Password",
+    currentPassword: "Current Password",
+    saveChanges: "Save Changes",
+    saving: "Saving...",
+    passwordMismatch: "Passwords do not match.",
+    incorrectPassword: "Current password is incorrect.",
+    usernameUpdated: "Username updated successfully.",
+    passwordUpdated: "Password updated successfully.",
   },
   ja: {
     // Common
@@ -138,5 +155,22 @@ export const adminDict = {
     saveName: "保存",
     failedToRename: "テーブル名の変更に失敗しました。",
     duplicateNameWarning: "同じ名前のテーブルが既に存在します",
+
+    // Settings
+    settings: "設定",
+    userManagement: "ユーザー管理",
+    accountSettings: "アカウント設定",
+    changeUsername: "ユーザー名を変更",
+    changePassword: "パスワードを変更",
+    newUsername: "新しいユーザー名",
+    newPassword: "新しいパスワード",
+    confirmPassword: "パスワードを確認",
+    currentPassword: "現在のパスワード",
+    saveChanges: "変更を保存",
+    saving: "保存中...",
+    passwordMismatch: "パスワードが一致しません。",
+    incorrectPassword: "現在のパスワードが正しくありません。",
+    usernameUpdated: "ユーザー名を更新しました。",
+    passwordUpdated: "パスワードを更新しました。",
   },
 };

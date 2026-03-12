@@ -66,6 +66,24 @@ alter table order_items enable row level security;
 -- Service role bypasses RLS — no policies needed for server-side access.
 -- If you ever add client-side Supabase calls, add policies here.
 
+-- ─── Users ────────────────────────────────────────────────────────────────────
+-- Admin (and future) user credentials. Passwords are bcrypt-hashed.
+
+create table if not exists users (
+  id            uuid primary key default gen_random_uuid(),
+  username      text not null unique,
+  password_hash text not null,
+  role          text not null default 'admin',
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+alter table users enable row level security;
+
+create trigger users_updated_at
+  before update on users
+  for each row execute function set_updated_at();
+
 -- ─── Realtime ─────────────────────────────────────────────────────────────────
 -- Enable realtime for the admin dashboard live feed.
 -- Run in Supabase Dashboard → Database → Replication → enable for these tables.
