@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { adminDict } from "@/lib/i18n/adminDict";
 import { useAdminLang } from "@/hooks/useAdminLang";
+import LangSwitcher from "@/components/LangSwitcher";
 
 export default function CredentialsManager({ logoUrl, username }: { logoUrl?: string; username?: string }) {
   const { lang, setLang } = useAdminLang();
@@ -142,20 +143,8 @@ export default function CredentialsManager({ logoUrl, username }: { logoUrl?: st
 
       {/* Lang toggle + Logout */}
       <div className="px-3 py-4 border-t border-white/5 shrink-0 flex flex-col gap-1">
-        <div className="flex gap-1 px-1 mb-1">
-          {(["en", "ja"] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                lang === l
-                  ? "bg-white/10 text-white"
-                  : "text-white/30 hover:text-white/60"
-              }`}
-            >
-              {l === "en" ? "EN" : "JP"}
-            </button>
-          ))}
+        <div className="px-3 mb-1">
+          <LangSwitcher lang={lang} setLang={setLang} />
         </div>
         <button onClick={handleLogout}
           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm font-medium text-white/40 hover:text-white hover:bg-white/5 transition-all">

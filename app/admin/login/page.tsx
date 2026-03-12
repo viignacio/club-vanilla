@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { adminDict } from "@/lib/i18n/adminDict";
 import { useAdminLang } from "@/hooks/useAdminLang";
+import LangSwitcher from "@/components/LangSwitcher";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -50,20 +51,8 @@ export default function AdminLoginPage() {
 
       <div className="w-full max-w-sm relative">
         {/* Lang toggle */}
-        <div className="flex justify-end mb-6 gap-1">
-          {(["en", "ja"] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                lang === l
-                  ? "bg-white/10 text-white"
-                  : "text-white/30 hover:text-white/60"
-              }`}
-            >
-              {l === "en" ? "EN" : "JP"}
-            </button>
-          ))}
+        <div className="flex justify-end mb-6">
+          <LangSwitcher lang={lang} setLang={setLang} />
         </div>
 
         {/* Logo / Brand */}
