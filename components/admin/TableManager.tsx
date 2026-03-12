@@ -8,7 +8,7 @@ import { adminDict } from "@/lib/i18n/adminDict";
 import { useAdminLang } from "@/hooks/useAdminLang";
 import { QRModal } from "@/components/admin/QRModal";
 
-export default function TableManager({ initialTables, logoUrl }: { initialTables: Table[]; logoUrl?: string }) {
+export default function TableManager({ initialTables, logoUrl, username }: { initialTables: Table[]; logoUrl?: string; username?: string }) {
   const { lang, setLang } = useAdminLang();
   const t = adminDict[lang];
 
@@ -99,7 +99,7 @@ export default function TableManager({ initialTables, logoUrl }: { initialTables
             Club Vanilla
           </p>
         )}
-        <p className="text-white/30 text-xs mt-0.5">{t.brandSubtitle}</p>
+        <p className="text-white/30 text-xs mt-0.5">{username ? `Hello, ${username}!` : t.brandSubtitle}</p>
       </div>
 
       {/* Nav */}
@@ -125,6 +125,13 @@ export default function TableManager({ initialTables, logoUrl }: { initialTables
               </svg>
               {t.tableManagement}
             </button>
+            <Link href="/admin/settings" onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              {t.userManagement}
+            </Link>
           </div>
         </div>
       </nav>
