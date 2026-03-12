@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { OrderSession } from "@/lib/supabase/types";
 import type { OrderMenuCategory, OrderMenuItem } from "@/lib/types/order";
 import type { CartItem } from "@/lib/supabase/types";
+import LangSwitcher from "@/components/LangSwitcher";
 
 type Lang = "en" | "ja";
 type View = "menu" | "cart" | "confirmation";
@@ -38,9 +39,9 @@ function buildSections(categories: OrderMenuCategory[], lang: Lang): Section[] {
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 function Header({
-  tableName, lang, onLangToggle, cartCount, onCartOpen, view, onBack,
+  tableName, lang, setLang, cartCount, onCartOpen, view, onBack,
 }: {
-  tableName: string; lang: Lang; onLangToggle: () => void;
+  tableName: string; lang: Lang; setLang: (l: Lang) => void;
   cartCount: number; onCartOpen: () => void; view: View; onBack: () => void;
 }) {
   return (
@@ -63,12 +64,7 @@ function Header({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={onLangToggle}
-            className="text-xs font-semibold px-3 py-2 rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-all"
-          >
-            {lang === "en" ? "日本語" : "English"}
-          </button>
+          <LangSwitcher lang={lang} setLang={setLang} />
           {view === "menu" && (
             <button
               onClick={onCartOpen}
@@ -414,7 +410,7 @@ export default function OrderUI({ session, categories }: OrderUIProps) {
 
       <Header
         tableName={session.tableName} lang={lang}
-        onLangToggle={() => setLang((l) => l === "en" ? "ja" : "en")}
+        setLang={setLang}
         cartCount={cartCount} onCartOpen={() => setView("cart")}
         view={view} onBack={() => setView("menu")}
       />
