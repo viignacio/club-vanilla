@@ -13,6 +13,7 @@ type View = "menu" | "cart" | "confirmation";
 interface OrderUIProps {
   session: OrderSession;
   categories: OrderMenuCategory[];
+  logoUrl?: string;
 }
 
 interface Section {
@@ -39,10 +40,11 @@ function buildSections(categories: OrderMenuCategory[], lang: Lang): Section[] {
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 function Header({
-  tableName, lang, setLang, cartCount, onCartOpen, view, onBack,
+  tableName, lang, setLang, cartCount, onCartOpen, view, onBack, logoUrl,
 }: {
   tableName: string; lang: Lang; setLang: (l: Lang) => void;
   cartCount: number; onCartOpen: () => void; view: View; onBack: () => void;
+  logoUrl?: string;
 }) {
   return (
     <header className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur-md border-b border-white/5 shrink-0">
@@ -55,11 +57,16 @@ function Header({
               </svg>
             </button>
           )}
-          <div className="min-w-0">
-            <p className="font-bold text-base leading-tight bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent">
-              Club Vanilla
-            </p>
-            <p className="text-white/40 text-xs truncate">{tableName}</p>
+          <div className="flex items-center gap-2.5 min-w-0">
+            {logoUrl ? (
+              <Image src={logoUrl} alt="Club Vanilla" width={90} height={32} className="object-contain max-h-8 w-auto shrink-0" />
+            ) : (
+              <p className="font-bold text-base leading-tight bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent shrink-0">
+                Club Vanilla
+              </p>
+            )}
+            <span className="text-white/15 shrink-0">|</span>
+            <span className="text-white/50 text-sm font-medium truncate">{tableName}</span>
           </div>
         </div>
 
@@ -346,7 +353,7 @@ function Confirmation({ lang, onOrderMore }: { lang: Lang; onOrderMore: () => vo
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function OrderUI({ session, categories }: OrderUIProps) {
+export default function OrderUI({ session, categories, logoUrl }: OrderUIProps) {
   const [lang, setLang] = useState<Lang>("ja");
   const [view, setView] = useState<View>("menu");
   const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
@@ -413,6 +420,7 @@ export default function OrderUI({ session, categories }: OrderUIProps) {
         setLang={setLang}
         cartCount={cartCount} onCartOpen={() => setView("cart")}
         view={view} onBack={() => setView("menu")}
+        logoUrl={logoUrl}
       />
 
       {/* Body — fills remaining viewport height, no overflow */}
