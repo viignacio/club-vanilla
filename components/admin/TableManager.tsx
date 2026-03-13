@@ -7,7 +7,7 @@ import { useAdminLang } from "@/hooks/useAdminLang";
 import { QRModal } from "@/components/admin/QRModal";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
-export default function TableManager({ initialTables, logoUrl, username }: { initialTables: Table[]; logoUrl?: string; username?: string }) {
+export default function TableManager({ initialTables, logoUrl, username, role = "admin" }: { initialTables: Table[]; logoUrl?: string; username?: string; role?: "admin" | "crew" }) {
   const { lang, setLang } = useAdminLang();
   const t = adminDict[lang];
 
@@ -81,6 +81,7 @@ export default function TableManager({ initialTables, logoUrl, username }: { ini
       lang={lang}
       setLang={setLang}
       activePage="tables"
+      role={role}
       onMobileClose={() => setMobileOpen(false)}
     />
   );
