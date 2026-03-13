@@ -4,8 +4,21 @@ import { useState } from "react";
 import { adminDict } from "@/lib/i18n/adminDict";
 import { useAdminLang } from "@/hooks/useAdminLang";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import UserManager from "@/components/admin/UserManager";
 
-export default function CredentialsManager({ logoUrl, username }: { logoUrl?: string; username?: string }) {
+interface User { id: string; username: string; role: string }
+
+export default function CredentialsManager({
+  logoUrl,
+  username,
+  role = "admin",
+  initialUsers = [],
+}: {
+  logoUrl?: string;
+  username?: string;
+  role?: "admin" | "crew";
+  initialUsers?: User[];
+}) {
   const { lang, setLang } = useAdminLang();
   const t = adminDict[lang];
 
@@ -86,6 +99,7 @@ export default function CredentialsManager({ logoUrl, username }: { logoUrl?: st
       lang={lang}
       setLang={setLang}
       activePage="settings"
+      role={role}
       onMobileClose={() => setMobileOpen(false)}
     />
   );
@@ -131,98 +145,114 @@ export default function CredentialsManager({ logoUrl, username }: { logoUrl?: st
           </button>
         </div>
 
-        <div className="flex-1 max-w-xl px-5 sm:px-8 py-6 sm:py-8 flex flex-col gap-8">
+        <div className="flex-1 px-5 sm:px-8 py-6 sm:py-8 flex flex-col gap-6">
           {/* Page header */}
           <div>
             <h1 className="text-white font-bold text-xl leading-tight">{t.accountSettings}</h1>
           </div>
 
-          {/* Change Username */}
-          <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5 sm:p-6">
-            <h2 className="text-white font-semibold mb-4">{t.changeUsername}</h2>
-            <form onSubmit={handleUpdateUsername} className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-white/40 text-xs font-medium">{t.newUsername}</label>
-                <input
-                  type="text"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  autoComplete="username"
-                  className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-white/40 text-xs font-medium">{t.currentPassword}</label>
-                <input
-                  type="password"
-                  value={currentPasswordForUsername}
-                  onChange={(e) => setCurrentPasswordForUsername(e.target.value)}
-                  autoComplete="current-password"
-                  className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
-                />
-              </div>
-              {usernameStatus && (
-                <p className={`text-xs ${usernameStatus.ok ? "text-emerald-400" : "text-red-400"}`}>
-                  {usernameStatus.msg}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={savingUsername || !newUsername.trim() || !currentPasswordForUsername}
-                className="self-start px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-pink to-brand-purple text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-40 shadow-lg shadow-brand-pink/15"
-              >
-                {savingUsername ? t.saving : t.saveChanges}
-              </button>
-            </form>
-          </div>
+          {/* Two-column grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-          {/* Change Password */}
-          <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5 sm:p-6">
-            <h2 className="text-white font-semibold mb-4">{t.changePassword}</h2>
-            <form onSubmit={handleUpdatePassword} className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-white/40 text-xs font-medium">{t.currentPassword}</label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  autoComplete="current-password"
-                  className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
-                />
+            {/* Left: Account Management */}
+            <div className="flex flex-col gap-4">
+              <p className="text-white/30 text-[11px] font-semibold uppercase tracking-widest">{t.accountManagement}</p>
+
+              {/* Change Username */}
+              <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5 sm:p-6">
+                <h2 className="text-white font-semibold mb-4">{t.changeUsername}</h2>
+                <form onSubmit={handleUpdateUsername} className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-white/40 text-xs font-medium">{t.newUsername}</label>
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      autoComplete="username"
+                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-white/40 text-xs font-medium">{t.currentPassword}</label>
+                    <input
+                      type="password"
+                      value={currentPasswordForUsername}
+                      onChange={(e) => setCurrentPasswordForUsername(e.target.value)}
+                      autoComplete="current-password"
+                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
+                    />
+                  </div>
+                  {usernameStatus && (
+                    <p className={`text-xs ${usernameStatus.ok ? "text-emerald-400" : "text-red-400"}`}>
+                      {usernameStatus.msg}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={savingUsername || !newUsername.trim() || !currentPasswordForUsername}
+                    className="self-start px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-pink to-brand-purple text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-40 shadow-lg shadow-brand-pink/15"
+                  >
+                    {savingUsername ? t.saving : t.saveChanges}
+                  </button>
+                </form>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-white/40 text-xs font-medium">{t.newPassword}</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  autoComplete="new-password"
-                  className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
-                />
+
+              {/* Change Password */}
+              <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5 sm:p-6">
+                <h2 className="text-white font-semibold mb-4">{t.changePassword}</h2>
+                <form onSubmit={handleUpdatePassword} className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-white/40 text-xs font-medium">{t.currentPassword}</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      autoComplete="current-password"
+                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-white/40 text-xs font-medium">{t.newPassword}</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-white/40 text-xs font-medium">{t.confirmPassword}</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
+                    />
+                  </div>
+                  {passwordStatus && (
+                    <p className={`text-xs ${passwordStatus.ok ? "text-emerald-400" : "text-red-400"}`}>
+                      {passwordStatus.msg}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
+                    className="self-start px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-pink to-brand-purple text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-40 shadow-lg shadow-brand-pink/15"
+                  >
+                    {savingPassword ? t.saving : t.saveChanges}
+                  </button>
+                </form>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-white/40 text-xs font-medium">{t.confirmPassword}</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-brand-pink/50 transition-colors"
-                />
-              </div>
-              {passwordStatus && (
-                <p className={`text-xs ${passwordStatus.ok ? "text-emerald-400" : "text-red-400"}`}>
-                  {passwordStatus.msg}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
-                className="self-start px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-pink to-brand-purple text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-40 shadow-lg shadow-brand-pink/15"
-              >
-                {savingPassword ? t.saving : t.saveChanges}
-              </button>
-            </form>
+            </div>
+
+            {/* Right: User Management */}
+            <div className="flex flex-col gap-4">
+              <p className="text-white/30 text-[11px] font-semibold uppercase tracking-widest">{t.userManagement}</p>
+              <UserManager initialUsers={initialUsers} lang={lang} currentUsername={username} />
+            </div>
+
           </div>
         </div>
       </div>

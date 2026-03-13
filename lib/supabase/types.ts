@@ -14,6 +14,9 @@ export interface Order {
   status: OrderStatus;
   note: string | null;
   total: number;
+  completed_by: string | null;
+  canceled_by: string | null;
+  authorized_by: string | null;
   created_at: string;
   updated_at: string;
   // Joined
@@ -64,6 +67,9 @@ interface OrderRow {
   status: OrderStatus;
   note: string | null;
   total: number;
+  completed_by: string | null;
+  canceled_by: string | null;
+  authorized_by: string | null;
   created_at: string;
   updated_at: string;
 }

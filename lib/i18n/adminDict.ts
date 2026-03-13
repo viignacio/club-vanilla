@@ -74,6 +74,7 @@ export const adminDict = {
     // Settings
     settings: "Settings",
     userManagement: "User Management",
+    accountManagement: "Account Management",
     accountSettings: "Account Settings",
     changeUsername: "Change Username",
     changePassword: "Change Password",
@@ -87,6 +88,28 @@ export const adminDict = {
     incorrectPassword: "Current password is incorrect.",
     usernameUpdated: "Username updated successfully.",
     passwordUpdated: "Password updated successfully.",
+
+    // User management
+    manageUsers: "Manage Users",
+    manageUsersDesc: "Create and manage admin and crew accounts.",
+    roleLabel: "Role",
+    adminRole: "Admin",
+    crewRole: "Crew",
+    createUser: "Create User",
+    creating: "Creating...",
+    userCreated: "User created successfully.",
+    failedToCreateUser: "Failed to create user.",
+    confirmDeleteUser: "Delete this user? This cannot be undone.",
+    userDeleted: "User deleted.",
+    failedToDeleteUser: "Failed to delete user.",
+    noUsers: "No users yet.",
+
+    // Admin auth modal (crew cancel)
+    adminAuthRequired: "Admin Authorization Required",
+    adminAuthDesc: "Cancellations require admin approval. Enter admin credentials to proceed.",
+    verifying: "Verifying...",
+    confirmCancel: "Confirm Cancel",
+    invalidAdminCredentials: "Invalid admin credentials.",
   },
   ja: {
     // Common
@@ -161,6 +184,7 @@ export const adminDict = {
     // Settings
     settings: "設定",
     userManagement: "ユーザー管理",
+    accountManagement: "アカウント管理",
     accountSettings: "アカウント設定",
     changeUsername: "ユーザー名を変更",
     changePassword: "パスワードを変更",
@@ -174,5 +198,27 @@ export const adminDict = {
     incorrectPassword: "現在のパスワードが正しくありません。",
     usernameUpdated: "ユーザー名を更新しました。",
     passwordUpdated: "パスワードを更新しました。",
+
+    // User management
+    manageUsers: "ユーザー管理",
+    manageUsersDesc: "管理者とクルーのアカウントを作成・管理します。",
+    roleLabel: "ロール",
+    adminRole: "管理者",
+    crewRole: "クルー",
+    createUser: "ユーザーを作成",
+    creating: "作成中...",
+    userCreated: "ユーザーを作成しました。",
+    failedToCreateUser: "ユーザーの作成に失敗しました。",
+    confirmDeleteUser: "このユーザーを削除しますか？この操作は取り消せません。",
+    userDeleted: "ユーザーを削除しました。",
+    failedToDeleteUser: "ユーザーの削除に失敗しました。",
+    noUsers: "ユーザーがいません。",
+
+    // Admin auth modal (crew cancel)
+    adminAuthRequired: "管理者認証が必要です",
+    adminAuthDesc: "キャンセルには管理者の承認が必要です。管理者の認証情報を入力してください。",
+    verifying: "確認中...",
+    confirmCancel: "キャンセルを確定",
+    invalidAdminCredentials: "管理者の認証情報が正しくありません。",
   },
 };

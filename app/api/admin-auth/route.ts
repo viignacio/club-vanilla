@@ -87,3 +87,10 @@ export async function getUsername(): Promise<string | undefined> {
   const payload = await getAdminTokenPayload(token);
   return payload?.username;
 }
+
+export async function getRole(): Promise<string | undefined> {
+  const { cookies } = await import("next/headers");
+  const token = (await cookies()).get("cv_admin")?.value;
+  const payload = await getAdminTokenPayload(token);
+  return payload?.role;
+}
