@@ -472,14 +472,10 @@ export default function OrderUI({ session, categories, logoUrl }: OrderUIProps) 
         {/* Desktop: floating card, always visible alongside menu */}
         {/* Mobile: full-screen overlay when view === "cart" */}
         <div className={`
-          lg:w-2/5 lg:shrink-0 lg:flex lg:flex-col lg:min-h-0 lg:py-4 lg:pr-4 lg:pl-3
+          lg:w-2/5 lg:flex-none lg:flex lg:flex-col lg:min-h-0 lg:py-4 lg:pr-4 lg:pl-3
           ${view === "menu" ? "hidden lg:flex" : "flex flex-col flex-1 min-h-0"}
         `}>
-          <div className={`flex flex-col flex-1 min-h-0 ${
-            view !== "confirmation"
-              ? "lg:rounded-2xl lg:border lg:border-white/8 lg:bg-white/[0.02] lg:overflow-hidden"
-              : ""
-          }`}>
+          <div className="flex flex-col flex-1 min-h-0 lg:rounded-2xl lg:border lg:border-white/8 lg:bg-white/[0.02] lg:overflow-hidden">
             {view === "confirmation"
               ? <Confirmation lang={lang} onOrderMore={() => setView("menu")} />
               : <CartPanel cart={cart} lang={lang} onRemove={removeFromCart} onAdd={addByKey}
