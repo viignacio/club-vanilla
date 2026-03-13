@@ -17,6 +17,7 @@ export interface Order {
   completed_by: string | null;
   canceled_by: string | null;
   authorized_by: string | null;
+  business_date?: string; // generated column: (created_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
   created_at: string;
   updated_at: string;
   // Joined
@@ -70,6 +71,7 @@ interface OrderRow {
   completed_by: string | null;
   canceled_by: string | null;
   authorized_by: string | null;
+  business_date: string; // generated column
   created_at: string;
   updated_at: string;
 }
