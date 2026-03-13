@@ -19,6 +19,7 @@ export function getQrUrl(table: QRTable): string {
 
 export function QRModal({ table, onClose, t }: { table: QRTable; onClose: () => void; t: typeof adminDict["en"] }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const url = getQrUrl(table);
 
   useEffect(() => {
@@ -69,9 +70,18 @@ export function QRModal({ table, onClose, t }: { table: QRTable; onClose: () => 
             className="flex-1 py-3 rounded-full bg-gradient-to-r from-brand-pink to-brand-purple text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-40 shadow-lg shadow-brand-pink/20">
             {t.downloadPng}
           </button>
-          <button onClick={() => navigator.clipboard.writeText(url)}
-            className="px-4 py-3 rounded-full bg-white/5 border border-white/10 text-white/60 font-semibold text-sm hover:bg-white/10 hover:text-white transition-all">
-            {t.copy}
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(url);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className={`w-28 py-3 rounded-full border font-semibold text-sm transition-all ${
+              copied
+                ? "bg-green-500/15 border-green-500/30 text-green-400"
+                : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}>
+            {copied ? t.copied : t.copy}
           </button>
         </div>
       </div>
