@@ -15,11 +15,12 @@ interface OrderFeedProps {
   username?: string;
 }
 
-function OrderCard({ order, onUpdate, isUpdating, t }: {
+function OrderCard({ order, onUpdate, isUpdating, t, lang }: {
   order: Order;
   onUpdate: (id: string, status: "done" | "cancelled") => void;
   isUpdating: boolean;
   t: typeof adminDict["en"];
+  lang: "en" | "ja";
 }) {
   const isPending = order.status === "pending";
   const isCancelled = order.status === "cancelled";
@@ -66,7 +67,7 @@ function OrderCard({ order, onUpdate, isUpdating, t }: {
         {items.map((item) => (
           <div key={item.id} className="flex items-center justify-between gap-3">
             <span className="text-white/70 text-sm">
-              {item.item_name_en}
+              {lang === "ja" ? (item.item_name_ja ?? item.item_name_en) : item.item_name_en}
               <span className="text-white/30 ml-1.5 text-xs">×{item.quantity}</span>
             </span>
             <span className="text-white/50 text-sm shrink-0 tabular-nums">
@@ -390,7 +391,7 @@ export default function OrderFeed({ initialOrders, tables, logoUrl, username }: 
             <div className="columns-1 sm:columns-2 xl:columns-3 gap-4 space-y-4">
               {filtered.map((order) => (
                 <div key={order.id} className="break-inside-avoid">
-                  <OrderCard order={order} onUpdate={handleUpdate} isUpdating={updatingId === order.id} t={t} />
+                  <OrderCard order={order} onUpdate={handleUpdate} isUpdating={updatingId === order.id} t={t} lang={lang} />
                 </div>
               ))}
             </div>
