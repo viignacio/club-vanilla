@@ -11,7 +11,7 @@ interface AdminSidebarProps {
   username?: string;
   lang: Lang;
   setLang: (l: Lang) => void;
-  activePage: "orders" | "tables" | "settings" | "analytics";
+  activePage: "orders" | "tables" | "settings" | "analytics" | "history";
   role?: "admin" | "crew";
   // Orders page — table list
   tables?: { id: string; name: string }[];
@@ -114,6 +114,27 @@ export default function AdminSidebar({
                 {table.name}
               </button>
             ))}
+
+            {/* History — visible to all roles */}
+            {activePage === "history" ? (
+              <button className={navItem(true)}>
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {t.orderHistory}
+              </button>
+            ) : (
+              <Link
+                href="/admin/history"
+                onClick={onMobileClose}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {t.orderHistory}
+              </Link>
+            )}
           </div>
         </div>
 

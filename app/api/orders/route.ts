@@ -72,6 +72,12 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ orderId: order.id }, { status: 201 });
 }
 
+// Business day starts at 20:00 JST — same formula as analytics route
+function currentBusinessDate(): string {
+  const shifted = new Date(Date.now() - 11 * 60 * 60 * 1000);
+  return shifted.toISOString().split("T")[0];
+}
+
 // GET /api/orders — list orders (admin only, verified via admin session cookie)
 export async function GET(request: NextRequest) {
   const adminToken = request.cookies.get("cv_admin")?.value;
@@ -82,6 +88,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const tableId = searchParams.get("tableId");
   const status = searchParams.get("status");
+  const businessDate = searchParams.get("businessDate") ?? currentBusinessDate();
 
   let query = supabase
     .from("orders")
@@ -90,6 +97,7 @@ export async function GET(request: NextRequest) {
       table:tables(id, name),
       items:order_items(*)
     `)
+    .eq("business_date", businessDate)
     .order("created_at", { ascending: false });
 
   if (tableId) query = query.eq("table_id", tableId);

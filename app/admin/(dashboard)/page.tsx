@@ -9,13 +9,18 @@ import OrderFeed from "@/components/admin/OrderFeed";
 import type { Order } from "@/lib/supabase/types";
 import type { Table } from "@/lib/supabase/types";
 
+function currentBusinessDate(): string {
+  const shifted = new Date(Date.now() - 11 * 60 * 60 * 1000);
+  return shifted.toISOString().split("T")[0];
+}
+
 export default async function AdminDashboardPage() {
   const [ordersResult, tablesResult, logoUrl, username, role] = await Promise.all([
     supabase
       .from("orders")
       .select("*, table:tables(id, name), items:order_items(*)")
-      .order("created_at", { ascending: false })
-      .limit(200),
+      .eq("business_date", currentBusinessDate())
+      .order("created_at", { ascending: false }),
     supabase
       .from("tables")
       .select("id, name, secret_key")

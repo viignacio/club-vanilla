@@ -139,6 +139,19 @@ export const adminDict = {
     loadingData: "Loading...",
     dateRangeError: "Start date must be before end date",
     futureDateError: "Start date cannot be in the future",
+
+    // Order History
+    orderHistory: "Order History",
+    historyDate: "Business Date",
+    noOrdersForDay: "No orders for this day",
+    prevPage: "Prev",
+    nextPage: "Next",
+    actedBy: "Acted By",
+    completedBy: "Completed by",
+    cancelledBy: "Cancelled by",
+    authorizedBy: "Auth. by",
+    timeJST: "Time (JST)",
+    itemCount: "Items",
   },
   ja: {
     // Common
@@ -278,5 +291,18 @@ export const adminDict = {
     loadingData: "読み込み中...",
     dateRangeError: "開始日は終了日より前にしてください",
     futureDateError: "開始日に未来の日付は指定できません",
+
+    // Order History
+    orderHistory: "注文履歴",
+    historyDate: "営業日",
+    noOrdersForDay: "この日の注文はありません",
+    prevPage: "前へ",
+    nextPage: "次へ",
+    actedBy: "担当者",
+    completedBy: "完了者",
+    cancelledBy: "キャンセル者",
+    authorizedBy: "承認者",
+    timeJST: "時間 (JST)",
+    itemCount: "品数",
   },
 };
