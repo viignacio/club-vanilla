@@ -17,14 +17,25 @@ create table if not exists tables (
 -- A device can submit multiple orders during a 12h session.
 
 create table if not exists orders (
-  id         uuid primary key default gen_random_uuid(),
-  table_id   uuid not null references tables(id) on delete cascade,
-  session_id text not null,         -- random UUID per device, stored in localStorage
-  status     text not null default 'pending' check (status in ('pending', 'done')),
-  note       text,                  -- optional customer note
-  total      integer not null default 0, -- total in yen (sum of items)
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  id                      uuid primary key default gen_random_uuid(),
+  table_id                uuid not null references tables(id) on delete cascade,
+  session_id              text not null,         -- random UUID per device, stored in localStorage
+  status                  text not null default 'pending' check (status in ('pending', 'done', 'cancelled')),
+  note                    text,                  -- optional customer note
+  total                   integer not null default 0, -- total in yen (sum of items)
+  completed_by            text,                  -- username of staff who marked done
+  canceled_by             text,                  -- username of staff who cancelled
+  authorized_by           text,                  -- username of staff who authorized
+  created_at              timestamptz not null default now(),
+  updated_at              timestamptz not null default now(),
+  -- Business day the order was placed (20:00 JST boundary)
+  business_date           date generated always as (
+                            (created_at at time zone 'Asia/Tokyo' - interval '20 hours')::date
+                          ) stored,
+  -- Business day the order was resolved (done/cancelled) — used for analytics and history
+  completed_business_date date generated always as (
+                            (updated_at at time zone 'Asia/Tokyo' - interval '20 hours')::date
+                          ) stored
 );
 
 -- ─── Order Items ───────────────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ export interface Order {
   canceled_by: string | null;
   authorized_by: string | null;
   business_date?: string; // generated column: (created_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
+  completed_business_date?: string; // generated column: (updated_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
   created_at: string;
   updated_at: string;
   // Joined
@@ -71,7 +72,8 @@ interface OrderRow {
   completed_by: string | null;
   canceled_by: string | null;
   authorized_by: string | null;
-  business_date: string; // generated column
+  business_date: string; // generated column: (created_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
+  completed_business_date: string; // generated column: (updated_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
   created_at: string;
   updated_at: string;
 }
@@ -87,8 +89,8 @@ export interface Database {
       };
       orders: {
         Row: OrderRow;
-        Insert: Omit<OrderRow, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<OrderRow, "id" | "created_at" | "updated_at">>;
+        Insert: Omit<OrderRow, "id" | "created_at" | "updated_at" | "business_date" | "completed_business_date">;
+        Update: Partial<Omit<OrderRow, "id" | "created_at" | "updated_at" | "business_date" | "completed_business_date">>;
       };
       order_items: {
         Row: OrderItem;

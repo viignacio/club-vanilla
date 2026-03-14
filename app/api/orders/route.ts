@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
       table:tables(id, name),
       items:order_items(*)
     `)
-    .eq("business_date", businessDate)
-    .order("created_at", { ascending: false });
+    .eq("completed_business_date", businessDate)
+    .order("updated_at", { ascending: false });
 
   if (tableId) query = query.eq("table_id", tableId);
   if (status) query = query.eq("status", status);

@@ -3,8 +3,9 @@ import { supabase } from "@/lib/supabase/client";
 import { verifyAdminCookie, getAdminTokenPayload } from "@/app/api/admin-auth/route";
 
 // Business day starts at 20:00 JST — orders from 20:00 day N to 19:59 day N+1
-// belong to day N's business_date. Formula matches the generated column:
-// (created_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
+// belong to day N. Formula matches the generated columns:
+// business_date:           (created_at AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
+// completed_business_date: (updated_at  AT TIME ZONE 'Asia/Tokyo' - INTERVAL '20 hours')::date
 function currentBusinessDate(): string {
   // +9h for JST, -20h for business day shift = net -11h from UTC
   const shifted = new Date(Date.now() - 11 * 60 * 60 * 1000);
@@ -34,7 +35,8 @@ interface RawOrder {
   status: string;
   total: number;
   created_at: string;
-  business_date: string;
+  updated_at: string;
+  completed_business_date: string;
   table_id: string;
   // Supabase returns joined relations as object or array depending on client inference
   table: { name: string } | { name: string }[] | null;
@@ -125,7 +127,7 @@ function computeAnalytics(
     for (let h = 20; h <= 28; h++) hourData[h] = { revenue: 0, losses: 0 };
 
     for (const order of orders) {
-      const jstHour = (new Date(order.created_at).getUTCHours() + 9) % 24;
+      const jstHour = (new Date(order.updated_at).getUTCHours() + 9) % 24;
       const bizH = jstHour >= 20 ? jstHour : jstHour + 24;
       if (bizH >= 20 && bizH <= 28) {
         if (order.status === "done") hourData[bizH].revenue += order.total || 0;
@@ -145,7 +147,7 @@ function computeAnalytics(
       dateData[new Date(ms).toISOString().split("T")[0]] = { revenue: 0, losses: 0 };
     }
     for (const order of orders) {
-      const d = order.business_date;
+      const d = order.completed_business_date;
       if (d && dateData[d] !== undefined) {
         if (order.status === "done") dateData[d].revenue += order.total || 0;
         else if (order.status === "cancelled") dateData[d].losses += order.total || 0;
@@ -279,10 +281,10 @@ export async function GET(request: NextRequest) {
   const { data: orders, error } = await supabase
     .from("orders")
     .select(
-      "id, status, total, created_at, business_date, table_id, table:tables(name), items:order_items(item_key, item_name_en, item_name_ja, price, quantity)"
+      "id, status, total, created_at, updated_at, completed_business_date, table_id, table:tables(name), items:order_items(item_key, item_name_en, item_name_ja, price, quantity)"
     )
-    .gte("business_date", startDate)
-    .lte("business_date", endDate);
+    .gte("completed_business_date", startDate)
+    .lte("completed_business_date", endDate);
 
   if (error) {
     console.error("[analytics] DB error:", error.message);
@@ -299,8 +301,8 @@ export async function GET(request: NextRequest) {
     const { data: priorOrders } = await supabase
       .from("orders")
       .select("status, total")
-      .gte("business_date", priorStart)
-      .lte("business_date", priorEnd);
+      .gte("completed_business_date", priorStart)
+      .lte("completed_business_date", priorEnd);
 
     if (priorOrders) {
       const priorDone = priorOrders.filter((o) => o.status === "done");
